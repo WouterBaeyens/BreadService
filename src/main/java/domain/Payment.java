@@ -6,21 +6,33 @@
 package domain;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  * @author Wouter
  */
 public class Payment {
+    private static AtomicLong nextId = new AtomicLong();
+    private final long id;
+    
     private double amount;
     private Date date;
     
     public Payment(double amount, Date date){
+        id = nextId.incrementAndGet();
         setAmount(amount);
         setDate(date);
     }
     
-    private void setAmount(double amount){
+        public long getId(){
+        return id;
+    }
+    
+    public void setAmount(double amount){
+        if(amount < 0){
+            throw new IllegalArgumentException("A person can't make a negative payment.");
+        }
         this.amount = amount;
     }
     
@@ -28,12 +40,19 @@ public class Payment {
         return amount;
     }
     
-    private void setDate(Date datum){
+    public void setDate(Date datum){
         this.date = datum;
     }
     
     public Date getDate(Date datum){
         return datum;
     }
-            
+      
+    @Override
+    public boolean equals(Object obj){
+        if (obj instanceof Payment){
+            return ((Payment)obj).getId() == getId();
+        }
+        return false;
+    }
 }

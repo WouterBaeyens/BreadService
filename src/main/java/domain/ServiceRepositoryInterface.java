@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -20,7 +21,7 @@ public interface ServiceRepositoryInterface {
     public Set<Person> getAllPersons();
     
     /*Returns all the persons linked to the given order*/
-    public Set<Person> getAllPersonsForOrder(Order order);
+    public Set<Person> getAllPersonsForOrder(long orderId);
     
 
 
@@ -28,7 +29,16 @@ public interface ServiceRepositoryInterface {
     /*Links the order to all the participating persons
      (also adds the persons (addPerson(person)) if they aren't added yet*/
     public void addOrder(Order order, Set<Person> persons);
-
+    
+    /*Returns the order based on it's id*/
+    public Order getOrder(long orderId);
+    
+    /*Deletes the order and all it's refernces to the persons it is assigned to*/
+    public void deleteOrder(long orderId);
+    
+    
+    public void updateOrder(long orderId, Date newDate, double newCostPerPerson);
+    
     /*Returns all the orders that have been set so far*/
     public Set<Order> getAllOrders();
     

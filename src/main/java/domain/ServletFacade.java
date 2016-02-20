@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -35,9 +36,22 @@ public class ServletFacade {
         return serviceRepository.getAllPersons();
     }
     
+    
     /*adds an order for the given group of people*/
     public void addOrder(Order order, Set<Person> persons){
         serviceRepository.addOrder(order, persons);
+    }
+    
+    public Order getOrder(long orderId){
+        return serviceRepository.getOrder(orderId);
+    }
+    
+    public void updateOrder(long orderId,Date newDate, double newCost){
+        serviceRepository.updateOrder(orderId, newDate, newCost);
+    }
+    
+    public void deleteOrder(long orderId){
+        serviceRepository.deleteOrder(orderId);
     }
         
     /*adds a (partial) payment made by a person for his orders*/
@@ -66,8 +80,8 @@ public class ServletFacade {
     }
     
     /*returs the group of people whom have made a certain order*/
-    public Set<Person> getPersonsWithOrder(Order order){
-        return serviceRepository.getAllPersonsForOrder(order);
+    public Set<Person> getPersonsWithOrder(long orderId){
+        return serviceRepository.getAllPersonsForOrder(orderId);
     }
     
 }

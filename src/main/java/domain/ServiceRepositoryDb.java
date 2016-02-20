@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
     }
 
     @Override
-    public Set<Person> getAllPersonsForOrder(Order order) {
+    public Set<Person> getAllPersonsForOrder(long orderId) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -34,6 +35,21 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+     @Override
+    public Order getOrder(long orderId){
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public void deleteOrder(long orderId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public void updateOrder(long orderId, Date newDate, double newCostPerPerson){
+          throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+    
     @Override
     public Set<Order> getAllOrders() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
