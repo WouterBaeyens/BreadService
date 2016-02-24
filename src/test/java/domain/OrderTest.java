@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 /**
  *
@@ -22,6 +24,11 @@ public class OrderTest {
     
     public OrderTest() {
     }
+    
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+    
+    private Order validOrderWithCurrentDate;
     
     @BeforeClass
     public static void setUpClass() {
@@ -33,6 +40,7 @@ public class OrderTest {
     
     @Before
     public void setUp() {
+        validOrderWithCurrentDate = new Order(3, LocalDateTime.now());
     }
     
     @After
@@ -43,12 +51,25 @@ public class OrderTest {
      * Test of getDate method, of class Order.
      */
     @Test
-    public void order_constructor_with_given_amount_and_date_sets_amount_and_date_of_order() {
+    public void order_constructor_should_create_new_order_with_given_date_and_amount() {
         double amount = 5;
         LocalDateTime date = LocalDateTime.now();
         Order order = new Order(amount, date);
         assertEquals(amount, order.getCostPerPerson(), 0.00001);
         assertEquals(date, order.getDate());
+    }
+    
+    public void order_constructor_with_negative_given_amount_should_throw_exception(){
+        double amount = -3;
+        exception.expect(DomainException.class);
+        Order order = new Order(amount, LocalDateTime.now());
+    }
+    
+    public void setAmount_with_negative_given_amount_should_throw_exception(){
+        double amount = -3;
+        validOrderWithCurrentDate.setCostPerPerson(amount);
+        exception.expect(DomainException.class);
+        
     }
 
     

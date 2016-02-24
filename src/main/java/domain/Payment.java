@@ -32,7 +32,7 @@ public class Payment {
     
     public void setAmount(double amount){
         if(amount < 0){
-            throw new IllegalArgumentException("A person can't make a negative payment.");
+            throw new DomainException("A person can't make a negative payment.");
         }
         this.amount = amount;
     }
@@ -45,8 +45,8 @@ public class Payment {
         this.date = datum;
     }
     
-    public Date getDate(Date datum){
-        return datum;
+    public LocalDateTime getDate(){
+        return date;
     }
       
     @Override

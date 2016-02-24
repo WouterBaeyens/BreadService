@@ -42,7 +42,7 @@ public class Order {
 
     public void setCostPerPerson(double amount) {
         if(amount < 0){
-            throw new IllegalArgumentException("an order can't have a negative cost.");
+            throw new DomainException("an order can't have a negative cost.");
         }
         this.costPerPerson = amount;
     }

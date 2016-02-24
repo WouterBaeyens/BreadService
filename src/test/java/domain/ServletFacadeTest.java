@@ -25,10 +25,10 @@ public class ServletFacadeTest {
     private ServletFacade facade;
     private Person genericPerson;
     private Set<Person> persons;
-    private Payment genericPayement_with_past_date;
-    private Payment genericPayement_with_past_date2;
-    private Order genericOrder_with_past_date;
-    private Order genericOrder_with_past_date2;
+    private Payment validPayement_with_current_date;
+    private Payment validPayement_with_current_date2;
+    private Order validOrder_with_current_date;
+    private Order validOrder_with_current_date2;
     
     public ServletFacadeTest() {
     }
@@ -49,10 +49,10 @@ public class ServletFacadeTest {
         persons = new HashSet<>();
         persons.add(new Person("Piet"));
         persons.add(new Person("Joris"));
-        genericPayement_with_past_date = new Payment(3, LocalDateTime.now());
-         genericPayement_with_past_date2 = new Payment(5, LocalDateTime.now());
-        genericOrder_with_past_date = new Order(5, LocalDateTime.now());
-        genericOrder_with_past_date2 = new Order(10, LocalDateTime.now());
+        validPayement_with_current_date = new Payment(3, LocalDateTime.now());
+         validPayement_with_current_date2 = new Payment(5, LocalDateTime.now());
+        validOrder_with_current_date = new Order(5, LocalDateTime.now());
+        validOrder_with_current_date2 = new Order(10, LocalDateTime.now());
     }
     
     @After
@@ -75,23 +75,23 @@ public class ServletFacadeTest {
             facade.addPerson(person);
         }
         //add de order, en geef de personen mee.
-        facade.addOrder(genericOrder_with_past_date, persons);
+        facade.addOrder(validOrder_with_current_date, persons);
         //check of aan elke persoon de meegegeven order gekoppeld is.
-        Set<Person> personsWithOrder = facade.getPersonsWithOrder(genericOrder_with_past_date.getId());
+        Set<Person> personsWithOrder = facade.getPersonsWithOrder(validOrder_with_current_date.getId());
         assertTrue(personsWithOrder.containsAll(persons));
     }
     
         @Test
     public void getOrder_should_return_the_order_with_the_given_id(){
-        facade.addOrder(genericOrder_with_past_date, persons);
-        long orderId = genericOrder_with_past_date.getId();
-            assertEquals(genericOrder_with_past_date, facade.getOrder(orderId));
+        facade.addOrder(validOrder_with_current_date, persons);
+        long orderId = validOrder_with_current_date.getId();
+            assertEquals(validOrder_with_current_date, facade.getOrder(orderId));
     }
 
     @Test
     public void addPersonPayment_should_link_the_payment_to_the_given_person() {
-        facade.addPersonPayment(genericPerson, genericPayement_with_past_date);
-        assertTrue(genericPerson.getPayments().contains(genericPayement_with_past_date));
+        facade.addPersonPayment(genericPerson, validPayement_with_current_date);
+        assertTrue(genericPerson.getPayments().contains(validPayement_with_current_date));
     }
 
     /**
@@ -99,9 +99,9 @@ public class ServletFacadeTest {
      */
     @Test
     public void getPersonTotalPayment_should_return_the_total_amount_payed_by_the_given_person() {        
-        facade.addPersonPayment(genericPerson, genericPayement_with_past_date);
-        facade.addPersonPayment(genericPerson, genericPayement_with_past_date2);
-        double expectedPayment = genericPayement_with_past_date.getAmount() + genericPayement_with_past_date2.getAmount();
+        facade.addPersonPayment(genericPerson, validPayement_with_current_date);
+        facade.addPersonPayment(genericPerson, validPayement_with_current_date2);
+        double expectedPayment = validPayement_with_current_date.getAmount() + validPayement_with_current_date2.getAmount();
         double actualPaymentResult = facade.getPersonTotalPayment(genericPerson);
         assertEquals(expectedPayment, actualPaymentResult, 0.000001);
 
@@ -113,28 +113,28 @@ public class ServletFacadeTest {
     @Test
     public void getPersonTotalOrderExpenses_should_return_the_total_cost_for_the_given_person() {
         persons.add(genericPerson);
-        facade.addOrder(genericOrder_with_past_date, persons);
-        facade.addOrder(genericOrder_with_past_date2, persons);
-        double expectedExpenses = genericOrder_with_past_date.getCostPerPerson() + genericOrder_with_past_date2.getCostPerPerson();
+        facade.addOrder(validOrder_with_current_date, persons);
+        facade.addOrder(validOrder_with_current_date2, persons);
+        double expectedExpenses = validOrder_with_current_date.getCostPerPerson() + validOrder_with_current_date2.getCostPerPerson();
         double actualExpenses = facade.getPersonTotalOrderExpenses(genericPerson);
         assertEquals(expectedExpenses, actualExpenses, 0.000001);
     }
     
     @Test
     public void updateOrder_should_update_the_date_and_cost_for_the_order_with_the_given_id(){
-        facade.addOrder(genericOrder_with_past_date, persons);
-        long orderId = genericOrder_with_past_date.getId();
+        facade.addOrder(validOrder_with_current_date, persons);
+        long orderId = validOrder_with_current_date.getId();
         LocalDateTime newDate = LocalDateTime.now();
         double newCostPerPerson = 15.3;
         facade.updateOrder(orderId, newDate, newCostPerPerson);
-        assertEquals(newDate, genericOrder_with_past_date.getDate());
-        assertEquals(newCostPerPerson, genericOrder_with_past_date.getCostPerPerson(), 0.000001);
+        assertEquals(newDate, validOrder_with_current_date.getDate());
+        assertEquals(newCostPerPerson, validOrder_with_current_date.getCostPerPerson(), 0.000001);
     }
     
     @Test
     public void deleteOrder_should_remove_the_order_and_all_its_relations(){
-        facade.addOrder(genericOrder_with_past_date, persons);
-        long orderId = genericOrder_with_past_date.getId();
+        facade.addOrder(validOrder_with_current_date, persons);
+        long orderId = validOrder_with_current_date.getId();
         facade.deleteOrder(orderId);
         assertNull(facade.getOrder(orderId));
         
