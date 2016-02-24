@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -37,7 +38,7 @@ public interface ServiceRepositoryInterface {
     public void deleteOrder(long orderId);
     
     
-    public void updateOrder(long orderId, Date newDate, double newCostPerPerson);
+    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson);
     
     /*Returns all the orders that have been set so far*/
     public Set<Order> getAllOrders();

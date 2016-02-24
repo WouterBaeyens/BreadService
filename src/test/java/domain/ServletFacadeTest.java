@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,10 +49,10 @@ public class ServletFacadeTest {
         persons = new HashSet<>();
         persons.add(new Person("Piet"));
         persons.add(new Person("Joris"));
-        genericPayement_with_past_date = new Payment(3, new Date(0));
-         genericPayement_with_past_date2 = new Payment(5, new Date(0));
-        genericOrder_with_past_date = new Order(5, new Date(0));
-        genericOrder_with_past_date2 = new Order(10, new Date(0));
+        genericPayement_with_past_date = new Payment(3, LocalDateTime.now());
+         genericPayement_with_past_date2 = new Payment(5, LocalDateTime.now());
+        genericOrder_with_past_date = new Order(5, LocalDateTime.now());
+        genericOrder_with_past_date2 = new Order(10, LocalDateTime.now());
     }
     
     @After
@@ -123,7 +124,7 @@ public class ServletFacadeTest {
     public void updateOrder_should_update_the_date_and_cost_for_the_order_with_the_given_id(){
         facade.addOrder(genericOrder_with_past_date, persons);
         long orderId = genericOrder_with_past_date.getId();
-        Date newDate = new Date(80);
+        LocalDateTime newDate = LocalDateTime.now();
         double newCostPerPerson = 15.3;
         facade.updateOrder(orderId, newDate, newCostPerPerson);
         assertEquals(newDate, genericOrder_with_past_date.getDate());

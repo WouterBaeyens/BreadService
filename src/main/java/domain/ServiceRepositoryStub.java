@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -80,7 +81,7 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     }
     
     @Override
-    public void updateOrder(long orderId, Date newDate, double newCostPerPerson){
+    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson){
          Order order = getOrder(orderId);
          order.setCostPerPerson(newCostPerPerson);
          order.setDate(newDate);   

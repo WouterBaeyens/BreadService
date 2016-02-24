@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,7 +45,7 @@ public class OrderTest {
     @Test
     public void order_constructor_with_given_amount_and_date_sets_amount_and_date_of_order() {
         double amount = 5;
-        Date date = new Date(0);
+        LocalDateTime date = LocalDateTime.now();
         Order order = new Order(amount, date);
         assertEquals(amount, order.getCostPerPerson(), 0.00001);
         assertEquals(date, order.getDate());

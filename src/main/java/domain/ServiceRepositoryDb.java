@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
     }
     
     @Override
-    public void updateOrder(long orderId, Date newDate, double newCostPerPerson){
+    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson){
           throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     

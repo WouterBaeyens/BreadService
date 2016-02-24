@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -19,9 +20,9 @@ public class Order {
     private final long id;
     
     private double costPerPerson;
-    private Date date;
+    private LocalDateTime date;
     
-    public Order(double costPerPerson, Date date){
+    public Order(double costPerPerson, LocalDateTime date){
         id = nextId.incrementAndGet();
         setCostPerPerson(costPerPerson);
         setDate(date);
@@ -31,11 +32,11 @@ public class Order {
         return id;
     }
     
-    public void setDate(Date date) {
+    public void setDate(LocalDateTime date) {
         this.date = date;   
     }
     
-    public Date getDate(){
+    public LocalDateTime getDate(){
         return date;
     }
 

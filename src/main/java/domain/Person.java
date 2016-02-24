@@ -23,7 +23,14 @@ public class Person {
     }
 
     private void setName(String name) {
+        if(name == null){
+            throw new DomainException("name must be defined");
+        }
         this.name = name;
+    }
+    
+    public String getName(){
+        return name;
     }
     
     

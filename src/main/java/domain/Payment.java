@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -17,9 +18,9 @@ public class Payment {
     private final long id;
     
     private double amount;
-    private Date date;
+    private LocalDateTime date;
     
-    public Payment(double amount, Date date){
+    public Payment(double amount, LocalDateTime date){
         id = nextId.incrementAndGet();
         setAmount(amount);
         setDate(date);
@@ -40,7 +41,7 @@ public class Payment {
         return amount;
     }
     
-    public void setDate(Date datum){
+    public void setDate(LocalDateTime datum){
         this.date = datum;
     }
     

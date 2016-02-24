@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ public class ServletFacade {
         return serviceRepository.getOrder(orderId);
     }
     
-    public void updateOrder(long orderId,Date newDate, double newCost){
+    public void updateOrder(long orderId,LocalDateTime newDate, double newCost){
         serviceRepository.updateOrder(orderId, newDate, newCost);
     }
     

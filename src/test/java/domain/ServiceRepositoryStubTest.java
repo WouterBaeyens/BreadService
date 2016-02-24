@@ -5,6 +5,7 @@
  */
 package domain;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -26,8 +27,8 @@ public class ServiceRepositoryStubTest {
     private ServiceRepositoryStub stub;
     private Person genericPerson;
     private Set<Person> persons;
-    private Payment genericPayement_with_past_date;
-    private Order genericOrder_with_past_date;
+    private Payment genericPayement_with_current_date;
+    private Order genericOrder_with_current_date;
     
     public ServiceRepositoryStubTest() {
     }
@@ -47,8 +48,8 @@ public class ServiceRepositoryStubTest {
         persons = new HashSet<>();
         persons.add(new Person("Piet"));
         persons.add(new Person("Joris"));
-        genericPayement_with_past_date = new Payment(3, new Date(0));
-        genericOrder_with_past_date = new Order(5, new Date(0));
+        genericPayement_with_current_date = new Payment(3, LocalDateTime.now());
+        genericOrder_with_current_date = new Order(5, LocalDateTime.now());
     }
     
     @After
@@ -68,16 +69,16 @@ public class ServiceRepositoryStubTest {
      * Test of addOrder method, of class ServiceRepositoryStub.
      */
     @Test
-    public void AddOrder_voegt_nieuwe_order_toe_vooer_elke_meegegeven_persoon_wanneer_alle_personen_geregistreerd_zijn() {
+    public void AddOrder_voegt_nieuwe_order_toe_voor_elke_meegegeven_persoon() {
         //registreer elke persoon uit de set
         for(Person person: persons){
             stub.addPerson(person);
         }
         //add de order, en geef de personen mee.
-        stub.addOrder(genericOrder_with_past_date, persons);
+        stub.addOrder(genericOrder_with_current_date, persons);
         //check of aan elke persoon de meegegeven order gekoppeld is.
         for(Person person:persons){
-            assertTrue(stub.getAllOrdersForPerson(person).contains(genericOrder_with_past_date));
+            assertTrue(stub.getAllOrdersForPerson(person).contains(genericOrder_with_current_date));
         }
     }
 
@@ -86,8 +87,8 @@ public class ServiceRepositoryStubTest {
      */
     @Test
     public void testAddPersonPayment_voegt_payment_toe_aan_de_meegegeven_persoon() {
-        stub.addPaymentForPerson(genericPerson, genericPayement_with_past_date);
-        assertTrue(genericPerson.getPayments().contains(genericPayement_with_past_date));
+        stub.addPaymentForPerson(genericPerson, genericPayement_with_current_date);
+        assertTrue(genericPerson.getPayments().contains(genericPayement_with_current_date));
     }
 
    
