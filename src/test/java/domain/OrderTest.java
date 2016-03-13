@@ -59,6 +59,7 @@ public class OrderTest {
         assertEquals(date, order.getDate());
     }
     
+    @Test
     public void order_constructor_with_negative_given_amount_should_throw_exception(){
         double amount = -3;
         exception.expect(DomainException.class);

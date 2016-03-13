@@ -3,8 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package domain;
+package database;
 
+import domain.Order;
+import domain.Payment;
+import domain.Person;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;

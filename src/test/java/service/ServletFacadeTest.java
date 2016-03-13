@@ -3,8 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package domain;
+package service;
 
+import domain.DomainException;
+import domain.Order;
+import domain.Payment;
+import domain.Person;
+import service.ServletFacade;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
@@ -15,12 +20,17 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 /**
  *
  * @author Wouter
  */
 public class ServletFacadeTest {
+    
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
     
     private ServletFacade facade;
     private Person genericPerson;
@@ -129,6 +139,13 @@ public class ServletFacadeTest {
         facade.updateOrder(orderId, newDate, newCostPerPerson);
         assertEquals(newDate, validOrder_with_current_date.getDate());
         assertEquals(newCostPerPerson, validOrder_with_current_date.getCostPerPerson(), 0.000001);
+    }
+    
+    @Test
+    public void payment_constructor_with_negative_given_amount_should_throw_exception(){
+        double amount = -3;
+        exception.expect(DomainException.class);
+        Payment payment = new Payment(amount, LocalDateTime.now());
     }
     
     @Test
