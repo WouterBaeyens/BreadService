@@ -9,7 +9,7 @@ import domain.DomainException;
 import domain.Order;
 import domain.Payment;
 import domain.Person;
-import service.ServletFacade;
+import service.BreadServiceFacade;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
@@ -32,7 +32,7 @@ public class ServletFacadeTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private ServletFacade facade;
+    private BreadServiceFacade facade;
     private Person genericPerson;
     private Set<Person> persons;
     private Payment validPayement_with_current_date;
@@ -54,15 +54,15 @@ public class ServletFacadeTest {
     
     @Before
     public void setUp() {
-        facade = new ServletFacade("stub");
+        facade = new BreadServiceFacade("stub");
         genericPerson = new Person("Jan");
         persons = new HashSet<>();
         persons.add(new Person("Piet"));
         persons.add(new Person("Joris"));
         validPayement_with_current_date = new Payment(3, LocalDateTime.now());
          validPayement_with_current_date2 = new Payment(5, LocalDateTime.now());
-        validOrder_with_current_date = new Order(5, LocalDateTime.now());
-        validOrder_with_current_date2 = new Order(10, LocalDateTime.now());
+        validOrder_with_current_date = new Order(LocalDateTime.now(), 5);
+        validOrder_with_current_date2 = new Order(LocalDateTime.now(), 10);
     }
     
     @After
@@ -70,7 +70,7 @@ public class ServletFacadeTest {
     }
 
     /**
-     * Test of addPerson method, of class ServletFacade.
+     * Test of addPerson method, of class BreadServiceFacade.
      */
     @Test
     public void addPerson_voegt_nieuwe_persoon_toe() {
@@ -105,7 +105,7 @@ public class ServletFacadeTest {
     }
 
     /**
-     * Test of getPersonTotalPayment method, of class ServletFacade.
+     * Test of getPersonTotalPayment method, of class BreadServiceFacade.
      */
     @Test
     public void getPersonTotalPayment_should_return_the_total_amount_payed_by_the_given_person() {        
@@ -118,7 +118,7 @@ public class ServletFacadeTest {
     }
 
     /**
-     * Test of getPersonTotalOrderExpenses method, of class ServletFacade.
+     * Test of getPersonTotalOrderExpenses method, of class BreadServiceFacade.
      */
     @Test
     public void getPersonTotalOrderExpenses_should_return_the_total_cost_for_the_given_person() {
@@ -135,10 +135,10 @@ public class ServletFacadeTest {
         facade.addOrder(validOrder_with_current_date, persons);
         long orderId = validOrder_with_current_date.getId();
         LocalDateTime newDate = LocalDateTime.now();
-        double newCostPerPerson = 15.3;
-        facade.updateOrder(orderId, newDate, newCostPerPerson);
+        double newTotalCost = 15.3;
+        facade.updateOrder(orderId, newTotalCost, newDate);
         assertEquals(newDate, validOrder_with_current_date.getDate());
-        assertEquals(newCostPerPerson, validOrder_with_current_date.getCostPerPerson(), 0.000001);
+        assertEquals(newTotalCost, validOrder_with_current_date.getTotalCost(), 0.000001);
     }
     
     @Test
@@ -148,12 +148,14 @@ public class ServletFacadeTest {
         Payment payment = new Payment(amount, LocalDateTime.now());
     }
     
+    //note: only the delete part is tested for now, and the relations will
+    //      stay intact until jpa is further configured.
     @Test
     public void deleteOrder_should_remove_the_order_and_all_its_relations(){
         facade.addOrder(validOrder_with_current_date, persons);
         long orderId = validOrder_with_current_date.getId();
         facade.deleteOrder(orderId);
-        assertNull(facade.getOrder(orderId));
+        assertFalse(facade.getAllOrders().contains(validOrder_with_current_date));
         
 }
    

@@ -51,11 +51,11 @@ public class OrderTest {
      * Test of getDate method, of class Order.
      */
     @Test
-    public void order_constructor_should_create_new_order_with_given_date_and_amount() {
+    public void Order_should_create_new_order_with_given_date_and_amount() {
         double amount = 5;
         LocalDateTime date = LocalDateTime.now();
         Order order = new Order(amount, date);
-        assertEquals(amount, order.getCostPerPerson(), 0.00001);
+        assertEquals(amount, order.getTotalCost(), 0.00001);
         assertEquals(date, order.getDate());
     }
     
@@ -68,7 +68,7 @@ public class OrderTest {
     
     public void setAmount_with_negative_given_amount_should_throw_exception(){
         double amount = -3;
-        validOrderWithCurrentDate.setCostPerPerson(amount);
+        validOrderWithCurrentDate.setTotalCost(amount);
         exception.expect(DomainException.class);
         
     }

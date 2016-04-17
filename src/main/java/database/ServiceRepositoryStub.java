@@ -28,13 +28,28 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     private Set<Person> persons;
     
     public ServiceRepositoryStub(){
-        persons = new HashSet<>();
+        persons = new HashSet<Person>();
+        Person p1 = new Person("Pieter Laermans");
+        p1.addPayment(new Payment(13.12, LocalDateTime.MAX));
+        p1.addPayment(new Payment(15.13, LocalDateTime.MAX));
+        persons.add(p1);
+        persons.add(new Person("Charlotte Luckx"));
+        
         personOrderRelations = new ArrayList<>();
     }
     
     @Override
     public void addPerson(Person person) {
         persons.add(person);
+    }
+    
+    @Override
+    public Person getPerson(long id) {
+        for(Person person: persons){
+            if(person.getId() == id)
+                return person;
+        }
+        return null;
     }
 
     @Override

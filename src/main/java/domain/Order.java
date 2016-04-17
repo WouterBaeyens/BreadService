@@ -13,33 +13,57 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Wouter
  */
-public class Order {
+public class Order implements Transaction{
     //ensures the incrementing code is atomic
     //so objects created at same time -> not the same id
-    private static AtomicLong nextId = new AtomicLong();
-    private final long id;
+    private long id;
     
     private double costPerPerson;
+    private double totalCost;
     private LocalDateTime date;
     
-    public Order(double costPerPerson, LocalDateTime date){
-        id = nextId.incrementAndGet();
+    @Deprecated
+    public Order(LocalDateTime date, double costPerPerson){
+        id = -1;
         setCostPerPerson(costPerPerson);
         setDate(date);
     }
-
+    
+    public Order(long id, double totalCost, LocalDateTime date){
+        this.id = id;
+        setTotalCost(totalCost);
+        setDate(date);
+    }
+    
+        public Order(double totalCost, LocalDateTime date){
+        this(-1,totalCost,date);
+    }
+    
+    public void setId(long id){
+        this.id = id;
+    }
+    
     public long getId(){
         return id;
     }
     
-    public void setDate(LocalDateTime date) {
-        this.date = date;   
+    public void setTotalCost(double amount){
+         if(amount < 0){
+            throw new DomainException("an order can't have a negative cost.");
+        }
+        this.totalCost = amount;
     }
     
-    public LocalDateTime getDate(){
-        return date;
+    public double getTotalCost(){
+        return totalCost;
+    }
+    
+        /*Returns the amount of people that are signed up for this order*/
+    int getNumberOfPersonsForOrder(long orderId){
+        throw new DomainException("getNumberOfPersonsForOrder is not yet implemented - relation only works in oposite direction for now");
     }
 
+    @Deprecated
     public void setCostPerPerson(double amount) {
         if(amount < 0){
             throw new DomainException("an order can't have a negative cost.");
@@ -51,6 +75,14 @@ public class Order {
         return costPerPerson;
     }
     
+        public void setDate(LocalDateTime date) {
+        this.date = date;   
+    }
+    
+    public LocalDateTime getDate(){
+        return date;
+    }
+    
     @Override
     public boolean equals(Object obj){
         if (obj instanceof Order){
@@ -58,6 +90,12 @@ public class Order {
         }
         return false;
     }
+
+    @Override
+    public int compareTo(Transaction transaction) {
+        return this.getDate().compareTo(transaction.getDate());
+    }
+    
     
     
 }

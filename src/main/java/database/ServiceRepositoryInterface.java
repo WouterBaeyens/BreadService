@@ -16,18 +16,21 @@ import java.util.Set;
  *
  * @author Wouter
  */
+@Deprecated
 public interface ServiceRepositoryInterface {
     
     /*register a new person (=add a new person to the repository)*/
     public void addPerson(Person person);
 
+    /*Returns the person with the given email*/
+    public Person getPerson(long id);
+    
     /*Returns all the persons that are registered (=currently stored on the repository)*/
     public Set<Person> getAllPersons();
     
     /*Returns all the persons linked to the given order*/
     public Set<Person> getAllPersonsForOrder(long orderId);
     
-
 
     
     /*Links the order to all the participating persons

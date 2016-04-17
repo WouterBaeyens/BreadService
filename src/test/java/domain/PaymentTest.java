@@ -46,7 +46,7 @@ public class PaymentTest {
      * Test of getDate method, of class Order.
      */
     @Test
-    public void payment_constructor_should_create_new_payment_with_given_date_and_amount() {
+    public void Payment_should_create_new_payment_with_given_date_and_amount() {
         double amount = 5;
         LocalDateTime date = LocalDateTime.now();
         Payment payment = new Payment(amount, date);

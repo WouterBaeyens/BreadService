@@ -53,7 +53,7 @@ public class ServiceRepositoryStubTest {
         persons.add(new Person("Piet"));
         persons.add(new Person("Joris"));
         genericPayement_with_current_date = new Payment(3, LocalDateTime.now());
-        genericOrder_with_current_date = new Order(5, LocalDateTime.now());
+        genericOrder_with_current_date = new Order(LocalDateTime.now(), 5);
     }
     
     @After
@@ -64,7 +64,7 @@ public class ServiceRepositoryStubTest {
      * Test of addPerson method, of class ServiceRepositoryStub.
      */
     @Test
-    public void AddPerson_voegt_nieuwe_persoon_toe() {
+    public void addPerson_voegt_nieuwe_persoon_toe() {
         stub.addPerson(genericPerson);
         assertTrue(stub.getAllPersons().contains(genericPerson));
     }

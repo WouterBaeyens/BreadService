@@ -25,6 +25,11 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
     }
 
     @Override
+    public Person getPerson(long id) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
     public Set<Person> getAllPersons() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }

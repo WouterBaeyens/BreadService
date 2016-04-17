@@ -13,18 +13,23 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Wouter
  */
-public class Payment {
+public class Payment implements Transaction{
     private static AtomicLong nextId = new AtomicLong();
-    private final long id;
+    private long id;
     
     private double amount;
     private LocalDateTime date;
     
+
     public Payment(double amount, LocalDateTime date){
-        id = nextId.incrementAndGet();
+        id = -1;
         setAmount(amount);
         setDate(date);
     }
+    
+        private void setId(){
+            this.id = id;
+        }
     
         public long getId(){
         return id;
@@ -55,5 +60,10 @@ public class Payment {
             return ((Payment)obj).getId() == getId();
         }
         return false;
+    }
+    
+    @Override
+    public int compareTo(Transaction transaction) {
+        return this.getDate().compareTo(transaction.getDate());
     }
 }

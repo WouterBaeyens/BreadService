@@ -5,6 +5,9 @@
  */
 package service;
 
+import database.OrderRepository;
+import database.PaymentRepository;
+import database.PersonRepository;
 import domain.Order;
 import domain.Payment;
 import domain.Person;
@@ -12,6 +15,7 @@ import database.ServiceRepositoryFactory;
 import database.ServiceRepositoryInterface;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,51 +28,75 @@ import java.util.Set;
  * For now the given dates on the orders and payments are not taken into account.
  * @author Wouter
  */
-public class ServletFacade {
+public class BreadServiceFacade implements Service{
 
-    private ServiceRepositoryInterface serviceRepository;
+    private OrderService orderService;
+    private PersonService personService;
+    private PaymentService paymentService;
     
-    public ServletFacade(String repositoryType){
-        serviceRepository = ServiceRepositoryFactory.createServiceRepository(repositoryType);
+    public BreadServiceFacade(String repositoryType){
+        orderService = new OrderService(repositoryType);
+        personService = new PersonService(repositoryType);
+        paymentService = new PaymentService(repositoryType);
     }
+    
+    @Deprecated
+    public BreadServiceFacade(ServiceRepositoryInterface serviceRepository){
+        throw new UnsupportedOperationException("You tried to access the BreadServiceFacade constructor, which should not be used.");
+    }
+    
+    
     
     /*adds a person to keep track of / store */
     public void addPerson(Person person){
-        serviceRepository.addPerson(person);
+        personService.addPerson(person);
+        
+    }
+    
+    /*returns the person with the given name*/
+    public Person getPerson(long id){
+        return personService.getPerson(id);
     }
     
     /*returns all the persons that are stored*/
     public Set<Person> getAllPersons(){
-        return serviceRepository.getAllPersons();
+        return personService.getAllPersons();
     }
     
     
     /*adds an order for the given group of people*/
     public void addOrder(Order order, Set<Person> persons){
-        serviceRepository.addOrder(order, persons);
+        orderService.addOrder(order);
+        for(Person person:persons){
+            person.addOrder(order);
+        }
     }
     
     public Order getOrder(long orderId){
-        return serviceRepository.getOrder(orderId);
+        return orderService.getOrder(orderId);
     }
     
-    public void updateOrder(long orderId,LocalDateTime newDate, double newCost){
-        serviceRepository.updateOrder(orderId, newDate, newCost);
+    public void updateOrder(long orderId,double newCost, LocalDateTime newDate){
+        orderService.updateOrder(orderId, newCost, newDate);
     }
     
     public void deleteOrder(long orderId){
-        serviceRepository.deleteOrder(orderId);
+        orderService.deleteOrder(orderId);
+    }
+    
+    public List<Order> getAllOrders(){
+        return orderService.getAllOrders();
     }
         
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement){
-        serviceRepository.addPaymentForPerson(person, payement);
+        person.addPayment(payement);
     }
     
     /*returns the total amount this person has payed up until now for his orders*/
     public double getPersonTotalPayment(Person person){
         double totalPayment = 0;
-        Set<Payment> payments = serviceRepository.getPaymentsForPerson(person);
+        Set<Payment> payments = person.getPayments();
         for(Payment payment: payments){
             totalPayment += payment.getAmount();
         }
@@ -78,7 +106,7 @@ public class ServletFacade {
     /*returns all the expenses this person has made through his orders*/
     public double getPersonTotalOrderExpenses(Person person){
         double totalExpenses = 0;
-        Set<Order> orders = serviceRepository.getAllOrdersForPerson(person);
+        Set<Order> orders = person.getOrders();
         for(Order order: orders){
             totalExpenses += order.getCostPerPerson();
         }
@@ -87,7 +115,7 @@ public class ServletFacade {
     
     /*returs the group of people whom have made a certain order*/
     public Set<Person> getPersonsWithOrder(long orderId){
-        return serviceRepository.getAllPersonsForOrder(orderId);
+        return personService.getPersonsWithOrder(orderId);
     }
     
 }
