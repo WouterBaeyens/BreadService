@@ -16,6 +16,6 @@ public class OrderRepositoryFactory {
             return new OrderRepositoryStub();
         }
         else
-            return new OrderRepositoryDb();
+            return new OrderRepositoryDb("BreadPU");
     }
 }

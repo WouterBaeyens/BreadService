@@ -5,7 +5,7 @@
  */
 package domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  *
@@ -18,7 +18,13 @@ public interface Transaction extends Comparable<Transaction>{
     /*
     public double getTransactionValue();
     */
-    public LocalDateTime getDate();    
     
+    public LocalDate getDate();  
+    
+    public double getTransactionValue();
+    
+    public String getFormattedDate();
+    
+    public String getType();
     
 }

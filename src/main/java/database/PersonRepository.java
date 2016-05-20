@@ -27,13 +27,14 @@ public interface PersonRepository {
     
     public void deletePerson(long id);
     
+    public void deleteAllPersons();
+    
     /*Returns all the persons that are registered (=currently stored on the repository)*/
     public Set<Person> getAllPersons();
     
-    /*Returns all the persons linked to the given order*/
-    public Set<Person> getAllPersonsForOrder(long orderId);
-    
     /*Returns all the payments for a person*/
     public List<Payment> getPaymentsForPerson(long personId);
-    
+ 
+    public void closeConnection() throws DbException;
+        
 }

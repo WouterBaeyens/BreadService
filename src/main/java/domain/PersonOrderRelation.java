@@ -11,9 +11,9 @@ package domain;
  */
 public class PersonOrderRelation {
     private Person person;
-    private Order order;
+    private OrderBill order;
     
-    public PersonOrderRelation(Person person, Order order){
+    public PersonOrderRelation(Person person, OrderBill order){
         setPerson(person);
         setOrder(order);
     }
@@ -28,11 +28,11 @@ public class PersonOrderRelation {
     }
 
     
-    private void setOrder(Order order) {
+    private void setOrder(OrderBill order) {
         this.order = order;
     }
     
-    public Order getOrder(){
+    public OrderBill getOrder(){
         return order;
     }
     

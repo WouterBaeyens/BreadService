@@ -5,53 +5,140 @@
  */
 package database;
 
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
 
 /**
  *
  * @author Wouter
  */
 class PersonRepositoryDb implements PersonRepository {
-
-    public PersonRepositoryDb() {
+    private EntityManagerFactory factory;
+    private EntityManager manager;
+    
+    public PersonRepositoryDb(String namePersistenceUnit){
+        factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
+        manager = factory.createEntityManager();
     }
 
     @Override
     public void addPerson(Person person) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try{
+            manager.getTransaction().begin();
+            manager.persist(person);
+            manager.flush();
+            manager.getTransaction().commit();
+        } catch (Exception e){
+            manager.getTransaction().rollback();
+            throw new DbException(e.getMessage(), e);
+        }
     }
 
     @Override
     public Person getPerson(long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+        try {
+            manager.getTransaction().begin();
+            Person person = manager.find(Person.class, id);
+            manager.flush();
+            manager.getTransaction().commit();
+            return person;
+        } catch (Exception e) {
+            manager.getTransaction().rollback();
+            throw new DbException(e.getMessage(),e);
+
+        }    }
 
     @Override
     public void updatePerson(long id, String newName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+         try{
+            Person person = getPerson(id);
+            person.setName(newName);
+        } catch (Exception e){
+            throw new DbException(e.getMessage(), e);
+        }    }
 
     @Override
+    //removing a person will be seen as invalidating the bills, since it ajusts the cost for the other persons retroactively
+    //later on, either a substitute for bill has to be found, or persons should only be archived to avoid this problem
+    //since this is not the owner class of the relationship person-order
+    //the order references have to be updated manually.
     public void deletePerson(long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            try{
+            Person person = getPerson(id);
+            manager.getTransaction().begin();
+            manager.remove(person);  
+            //To avoid removing items from the list over which i am iterating
+            List<OrderBill> ordersToBeRemoved = new ArrayList<>();
+            ordersToBeRemoved.addAll(person.getOrders());
+            for (OrderBill order : ordersToBeRemoved) {
+                person.removeOrder(order);
+            }         
+            /*List<Payment> paymentsToBeRemoved = new ArrayList<>();
+            paymentsToBeRemoved.addAll(person.getPayments());
+            for(Payment payment: paymentsToBeRemoved){
+                person.removePayment(payment);
+            }*/
+            manager.flush();
+            manager.getTransaction().commit();
+        } catch (Exception e){
+            manager.getTransaction().rollback();
+            throw new DbException(e.getMessage(), e);
+        }    
+    }
+    
+    @Override
+    public void deleteAllPersons(){
+                try {
+            for(Person person: getAllPersons()){
+                deletePerson(person.getId());
+            }
+        } catch (Exception e) {
+            throw new DbException(e.getMessage(), e);
+        }
     }
 
     @Override
     public Set<Person> getAllPersons() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Set<Person> getAllPersonsForOrder(long orderId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            Query query = manager.createNamedQuery("Person.getAll");
+            return new HashSet<>(query.getResultList());
+        } catch (NoResultException e){
+            return new HashSet<>();
+        } catch (Exception e) {
+            throw new DbException(e.getMessage(),e);
+        }    
     }
 
     @Override
     public List<Payment> getPaymentsForPerson(long personId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            Person person = getPerson(personId);
+            List<Payment> paymentList = new ArrayList<>();
+            paymentList.addAll(person.getPayments());
+            return paymentList;
+        } catch (Exception e) {
+            throw new DbException(e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public void closeConnection() throws DbException {
+        try{
+        manager.close();
+        factory.close();
+        } catch (Exception e){
+            throw new DbException(e.getMessage(), e);
+        } 
     }
     
 }

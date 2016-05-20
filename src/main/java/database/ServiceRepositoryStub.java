@@ -5,11 +5,11 @@
  */
 package database;
 
-import domain.Order;
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
 import domain.PersonOrderRelation;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -30,8 +30,8 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     public ServiceRepositoryStub(){
         persons = new HashSet<Person>();
         Person p1 = new Person("Pieter Laermans");
-        p1.addPayment(new Payment(13.12, LocalDateTime.MAX));
-        p1.addPayment(new Payment(15.13, LocalDateTime.MAX));
+        p1.addPayment(new Payment(13.12, LocalDate.MAX));
+        p1.addPayment(new Payment(15.13, LocalDate.MAX));
         persons.add(p1);
         persons.add(new Person("Charlotte Luckx"));
         
@@ -72,7 +72,7 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     
     
     @Override
-    public void addOrder(Order order, Set<Person> personGroup) {
+    public void addOrder(OrderBill order, Set<Person> personGroup) {
             for(Person person: personGroup){
                 addPerson(person);
                 personOrderRelations.add(new PersonOrderRelation(person, order));
@@ -80,7 +80,7 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
         }  
     
     @Override
-    public Order getOrder(long orderId){
+    public OrderBill getOrder(long orderId){
         for(PersonOrderRelation personOrderRelation : personOrderRelations){
             if(personOrderRelation.getOrder().getId() == orderId){
                 return personOrderRelation.getOrder();
@@ -100,15 +100,15 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     }
     
     @Override
-    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson){
-         Order order = getOrder(orderId);
+    public void updateOrder(long orderId, LocalDate newDate, double newCostPerPerson){
+         OrderBill order = getOrder(orderId);
          order.setCostPerPerson(newCostPerPerson);
          order.setDate(newDate);   
     }
     
     @Override
-    public Set<Order> getAllOrders() {
-        Set<Order> resultSet = new HashSet<>();
+    public Set<OrderBill> getAllOrders() {
+        Set<OrderBill> resultSet = new HashSet<>();
         for(PersonOrderRelation personOrderRelation : personOrderRelations){
             resultSet.add(personOrderRelation.getOrder());
         }
@@ -116,8 +116,8 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     }
     
         @Override
-    public Set<Order> getAllOrdersForPerson(Person person) {
-        Set<Order> orders = new HashSet<>();
+    public Set<OrderBill> getAllOrdersForPerson(Person person) {
+        Set<OrderBill> orders = new HashSet<>();
         for(PersonOrderRelation personWithOrder : personOrderRelations){
             if(personWithOrder.getPerson().equals(person)){
                 orders.add(personWithOrder.getOrder());

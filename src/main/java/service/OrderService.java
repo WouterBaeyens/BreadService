@@ -8,9 +8,9 @@ package service;
 import database.DbException;
 import database.OrderRepository;
 import database.OrderRepositoryFactory;
-import domain.Order;
+import domain.OrderBill;
 import domain.Person;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -26,11 +26,11 @@ public class OrderService {
             this.repository = OrderRepositoryFactory.createOrderRepository(repostioryType);
         }
         
-    public void addOrder(Order order){
+    public void addOrder(OrderBill order){
         repository.addOrder(order);
     }
     
-    public Order getOrder(long orderId){
+    public OrderBill getOrder(long orderId){
         try{
             return repository.getOrder(orderId);
         } catch (DbException ex){
@@ -38,7 +38,7 @@ public class OrderService {
         }
     }
     
-    public void updateOrder(long orderId,double newCost, LocalDateTime newDate){
+    public void updateOrder(long orderId,double newCost, LocalDate newDate){
         repository.updateOrder(orderId, newCost, newDate);
     }
     
@@ -46,8 +46,21 @@ public class OrderService {
         repository.deleteOrder(orderId);
     }
     
-    List<Order> getAllOrders() {
+    public Set<Person> getPersonsWithOrder(long orderId){
+        OrderBill order = repository.getOrder(orderId);
+        return order.getAuthors();
+    }
+    
+    List<OrderBill> getAllOrders() {
         return repository.getAllOrders();
+    }
+    
+    public void deleteAllOrders(){
+        repository.deleteAllOrders();
+    }
+
+    public void closeConnection() {
+        repository.closeConnection();
     }
         
 }

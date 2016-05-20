@@ -6,7 +6,7 @@
 package domain;
 
 import static java.time.Instant.now;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Set;
 import javafx.util.converter.LocalDateTimeStringConverter;
@@ -46,7 +46,7 @@ public class PersonTest {
     @Before
     public void setUp() {
         personWithNameJan = new Person("Jan");
-        positivePaymentWithPastDate = new Payment(3, LocalDateTime.now());
+        positivePaymentWithPastDate = new Payment(3, LocalDate.now());
     }
     
     @After
@@ -67,9 +67,7 @@ public class PersonTest {
         Person person = new Person(name);
     }
     
-    /**
-     * Test of addPayment method, of class Person.
-     */
+
     @Test
     public void addPaymentShouldAddPaymentToGivenPerson() {
         personWithNameJan.addPayment(positivePaymentWithPastDate);

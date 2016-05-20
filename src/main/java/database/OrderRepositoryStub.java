@@ -5,8 +5,8 @@
  */
 package database;
 
-import domain.Order;
-import java.time.LocalDateTime;
+import domain.OrderBill;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,10 +23,10 @@ public class OrderRepositoryStub implements OrderRepository{
     //ensures the incrementing code is atomic
     //so objects created at same time -> not the same id
     private static AtomicLong nextId = new AtomicLong();
-    private Map<Long, Order> orders;
+    private Map<Long, OrderBill> orders;
     
     public OrderRepositoryStub(){
-        orders = new HashMap<Long, Order>();
+        orders = new HashMap<Long, OrderBill>();
         
     }
     
@@ -35,7 +35,7 @@ public class OrderRepositoryStub implements OrderRepository{
     //ie: when order is added a second time, the id of order will be changed
     //    and it will be assigned to a second key (which has the updated id value)
     @Override
-    public void addOrder(Order order) {
+    public void addOrder(OrderBill order) {
         order.setId(nextId.incrementAndGet());
         if(orders.containsKey(order.getId()))
             throw new DbException("order with this id (" + order.getId() + ") already exists");
@@ -50,24 +50,34 @@ public class OrderRepositoryStub implements OrderRepository{
     }
 
     @Override
-    public Order getOrder(long orderId) {
+    public OrderBill getOrder(long orderId) {
         if(!orders.containsKey(orderId))
             throw new DbException("no order with  this id (" + orderId + ") was found.");
         return orders.get(orderId);
     }
     
         @Override
-    public void updateOrder(long orderId, double newCost, LocalDateTime newDate) {
-        Order order = getOrder(orderId);
+    public void updateOrder(long orderId, double newCost, LocalDate newDate) {
+        OrderBill order = getOrder(orderId);
         order.setTotalCost(newCost);
         order.setDate(newDate);
     }
 
     @Override
-    public List<Order> getAllOrders() {
-        List<Order> orderList = new ArrayList<>();
+    public List<OrderBill> getAllOrders() {
+        List<OrderBill> orderList = new ArrayList<>();
         orderList.addAll(orders.values());
         return orderList;
+    }
+
+    @Override
+    public void closeConnection() throws DbException {
+        System.out.println("imitates a real database and acts like it's really closing a connection");
+    }
+
+    @Override
+    public void deleteAllOrders() {
+        orders.clear();
     }
     
 }

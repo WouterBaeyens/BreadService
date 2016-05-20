@@ -5,7 +5,7 @@
  */
 package domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -25,10 +25,14 @@ public class OrderTest {
     public OrderTest() {
     }
     
+    /* http://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-4-tests?rq=1
+    This can be preferred over @Test(expected=IndexOutOfBoundsException.class) 
+    because the test will fail if Exception is thrown before foo.doStuff()
+    */
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private Order validOrderWithCurrentDate;
+    private OrderBill validOrderWithCurrentDate;
     
     @BeforeClass
     public static void setUpClass() {
@@ -40,7 +44,7 @@ public class OrderTest {
     
     @Before
     public void setUp() {
-        validOrderWithCurrentDate = new Order(3, LocalDateTime.now());
+        validOrderWithCurrentDate = new OrderBill(3, LocalDate.now());
     }
     
     @After
@@ -48,13 +52,13 @@ public class OrderTest {
     }
 
     /**
-     * Test of getDate method, of class Order.
+     * Test of getDate method, of class OrderBill.
      */
     @Test
     public void Order_should_create_new_order_with_given_date_and_amount() {
         double amount = 5;
-        LocalDateTime date = LocalDateTime.now();
-        Order order = new Order(amount, date);
+        LocalDate date = LocalDate.now();
+        OrderBill order = new OrderBill(amount, date);
         assertEquals(amount, order.getTotalCost(), 0.00001);
         assertEquals(date, order.getDate());
     }
@@ -63,7 +67,7 @@ public class OrderTest {
     public void order_constructor_with_negative_given_amount_should_throw_exception(){
         double amount = -3;
         exception.expect(DomainException.class);
-        Order order = new Order(amount, LocalDateTime.now());
+        OrderBill order = new OrderBill(amount, LocalDate.now());
     }
     
     public void setAmount_with_negative_given_amount_should_throw_exception(){

@@ -16,6 +16,6 @@ public class PersonRepositoryFactory {
             return new PersonRepositoryStub();
         }
         else
-            return new PersonRepositoryDb();
+            return new PersonRepositoryDb("BreadPU");
     }
 }

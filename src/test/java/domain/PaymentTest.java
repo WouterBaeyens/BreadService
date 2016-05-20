@@ -5,7 +5,7 @@
  */
 package domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -35,7 +35,7 @@ public class PaymentTest {
     
     @Before
     public void setUp() {
-        positivePaymentWithCurrentDate = new Payment(3, LocalDateTime.now());
+        positivePaymentWithCurrentDate = new Payment(3, LocalDate.now());
     }
     
     @After
@@ -48,7 +48,7 @@ public class PaymentTest {
     @Test
     public void Payment_should_create_new_payment_with_given_date_and_amount() {
         double amount = 5;
-        LocalDateTime date = LocalDateTime.now();
+        LocalDate date = LocalDate.now();
         Payment payment = new Payment(amount, date);
         assertEquals(amount, payment.getAmount(), 0.00001);
         assertEquals(date, payment.getDate());

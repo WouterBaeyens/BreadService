@@ -5,10 +5,11 @@
  */
 package service;
 
-import domain.Order;
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
-import java.time.LocalDateTime;
+import domain.Transaction;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -34,18 +35,25 @@ public interface Service {
     
     /*returns the person with the given name*/
     public Person getPerson(long id);
+    public Person getPerson(String id);
     
     /*adds an order for the given group of people*/
-    public void addOrder(Order order, Set<Person> persons);
+    public void addOrder(OrderBill order, Set<Person> persons);
     
-    public Order getOrder(long orderId);
+    /*Switching the order is hacky - reason:
+        - because of erasure just switching isn't possible
+        - because person references order and not the other way around
+            this can't be refractored to the OrderBill constructor as of now*/
+    public void addOrder(Set<Long> personIds, OrderBill order);
     
-    public void updateOrder(long orderId,double newCost, LocalDateTime newDate);
+    public OrderBill getOrder(long orderId);
+    
+    public void updateOrder(long orderId,double newCost, LocalDate newDate);
     
     public void deleteOrder(long orderId);
         
     /*returns all the orders that are stored*/
-    public List<Order> getAllOrders();
+    public List<OrderBill> getAllOrders();
     
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement);
@@ -59,4 +67,9 @@ public interface Service {
     /*returs the group of people whom have made a certain order*/
     public Set<Person> getPersonsWithOrder(long orderId);
     
+    public List<Transaction> getSortedTransactionsForPerson(long personId);
+    
+    public void deleteAll();
+    
+    public void closeConnections();
 }

@@ -5,10 +5,10 @@
  */
 package database;
 
-import domain.Order;
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -40,12 +40,12 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
     }
 
     @Override
-    public void addOrder(Order order, Set<Person> persons) {
+    public void addOrder(OrderBill order, Set<Person> persons) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
      @Override
-    public Order getOrder(long orderId){
+    public OrderBill getOrder(long orderId){
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
@@ -55,17 +55,17 @@ public class ServiceRepositoryDb implements ServiceRepositoryInterface{
     }
     
     @Override
-    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson){
+    public void updateOrder(long orderId, LocalDate newDate, double newCostPerPerson){
           throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     
     @Override
-    public Set<Order> getAllOrders() {
+    public Set<OrderBill> getAllOrders() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Set<Order> getAllOrdersForPerson(Person person) {
+    public Set<OrderBill> getAllOrdersForPerson(Person person) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

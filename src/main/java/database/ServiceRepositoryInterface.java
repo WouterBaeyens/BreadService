@@ -5,10 +5,10 @@
  */
 package database;
 
-import domain.Order;
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Set;
 
@@ -35,22 +35,22 @@ public interface ServiceRepositoryInterface {
     
     /*Links the order to all the participating persons
      (also adds the persons (addPerson(person)) if they aren't added yet*/
-    public void addOrder(Order order, Set<Person> persons);
+    public void addOrder(OrderBill order, Set<Person> persons);
     
     /*Returns the order based on it's id*/
-    public Order getOrder(long orderId);
+    public OrderBill getOrder(long orderId);
     
     /*Deletes the order and all it's refernces to the persons it is assigned to*/
     public void deleteOrder(long orderId);
     
     
-    public void updateOrder(long orderId, LocalDateTime newDate, double newCostPerPerson);
+    public void updateOrder(long orderId, LocalDate newDate, double newCostPerPerson);
     
     /*Returns all the orders that have been set so far*/
-    public Set<Order> getAllOrders();
+    public Set<OrderBill> getAllOrders();
     
     /*Returns all the orders linked to that person*/
-    public Set<Order> getAllOrdersForPerson(Person person);
+    public Set<OrderBill> getAllOrdersForPerson(Person person);
     
     
     

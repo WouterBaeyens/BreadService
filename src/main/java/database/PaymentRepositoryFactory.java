@@ -16,6 +16,6 @@ public class PaymentRepositoryFactory {
             return new PaymentRepositoryStub();
         }
         else
-            return new PaymentRepositoryDb();
+            return new PaymentRepositoryDb("BreadPU");
     }
 }

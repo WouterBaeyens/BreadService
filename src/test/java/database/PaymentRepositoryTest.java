@@ -6,7 +6,8 @@
 package database;
 
 import domain.Payment;
-import java.time.LocalDateTime;
+import domain.Person;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,16 +22,18 @@ import org.junit.rules.ExpectedException;
  *
  * @author Wouter
  */
-public class PaymentRepositoryStubTest {
+public class PaymentRepositoryTest {
     
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private PaymentRepositoryStub stub;
+    private PaymentRepository repository;
+    //A payment can't exist without a person initiating it.
+    private Person genericPerson_for_owning_payments;
     private Payment genericPayment_with_current_date;
     private Payment genericPayment_with_past_date;
     
-    public PaymentRepositoryStubTest() {
+    public PaymentRepositoryTest() {
     }
     
     @BeforeClass
@@ -43,13 +46,17 @@ public class PaymentRepositoryStubTest {
     
     @Before
     public void setUp() {
-        stub = new PaymentRepositoryStub();
-        genericPayment_with_current_date = new Payment(15, LocalDateTime.now());
-        genericPayment_with_past_date = new Payment(0.38, LocalDateTime.MIN);
+        repository = PaymentRepositoryFactory.createPaymentRepository("JPA");
+        // for now the original database is used for the tests as well
+        repository.deleteAllPayments();
+        genericPayment_with_current_date = new Payment(15, LocalDate.now());
+        genericPayment_with_past_date = new Payment(0.38, LocalDate.MIN);
     }
     
     @After
     public void tearDown() {
+        repository.deleteAllPayments();
+        repository.closeConnection();
     }
 
     /**
@@ -58,11 +65,11 @@ public class PaymentRepositoryStubTest {
     @Test
     public void addPayment_adds_the_given_payment_to_the_stub() {
         double amount = genericPayment_with_current_date.getAmount();
-        LocalDateTime date = genericPayment_with_current_date.getDate();
-        stub.addPayment(genericPayment_with_current_date);
+        LocalDate date = genericPayment_with_current_date.getDate();
+        repository.addPayment(genericPayment_with_current_date);
         long id = genericPayment_with_current_date.getId();
         
-        Payment payment = stub.getPayment(id);
+        Payment payment = repository.getPayment(id);
         assertEquals(amount, payment.getAmount(), 0.00001);
         assertEquals(date, payment.getDate());
     }
@@ -73,15 +80,15 @@ public class PaymentRepositoryStubTest {
     @Test
     public void updatePayment_updates_the_payment_with_the_given_id_to_the_given_values() {
         double cost = genericPayment_with_current_date.getAmount();
-        LocalDateTime date = genericPayment_with_current_date.getDate();
-        stub.addPayment(genericPayment_with_current_date);
+        LocalDate date = genericPayment_with_current_date.getDate();
+        repository.addPayment(genericPayment_with_current_date);
         long id = genericPayment_with_current_date.getId();
         
         double newCost = 15.4;
-        LocalDateTime newDate = LocalDateTime.MAX;
+        LocalDate newDate = LocalDate.MAX;
         
-        stub.updatePayment(id, newCost, newDate);
-        Payment payment = stub.getPayment(id);
+        repository.updatePayment(id, newCost, newDate);
+        Payment payment = repository.getPayment(id);
         assertEquals(newCost, payment.getAmount(), 0.00001);
         assertEquals(newDate, payment.getDate());
     }
@@ -91,11 +98,19 @@ public class PaymentRepositoryStubTest {
      */
     @Test
      public void deletePayment_removes_order_with_given_id_from_stub() {
-        stub.addPayment(genericPayment_with_current_date);
+        repository.addPayment(genericPayment_with_current_date);
         long id = genericPayment_with_current_date.getId();
         
-        stub.deletePayment(id);
-        assertFalse(stub.getAllPayments().contains(genericPayment_with_current_date));
+        repository.deletePayment(id);
+        assertFalse(repository.getAllPayments().contains(genericPayment_with_current_date));
     }
     
+     @Test
+     public void payments_get_different_unique_ids_assigned_when_added(){
+         repository.addPayment(genericPayment_with_past_date);
+         repository.addPayment(genericPayment_with_current_date);
+         long id = genericPayment_with_past_date.getId();
+         long id2 = genericPayment_with_current_date.getId();
+         assertNotEquals(id, id2);
+     }
 }

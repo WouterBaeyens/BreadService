@@ -8,17 +8,42 @@ package domain;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author Wouter
  */
+@NamedQueries({
+    @NamedQuery(name="Person.getAll", query="select p from Person p"),
+}) 
+@Entity(name="Person")
 public class Person {
-    
+    @Id
+    @Column(name="PERSON_ID")
+    @GeneratedValue
     private long id;
-    private String name = "undefined";
+
+    //The meaning of CascadeType.ALL is that the persistence will propagate (cascade) all EntityManager operations (PERSIST, REMOVE, REFRESH, MERGE, DETACH) to the relating entities.
+    //orphanRemoval normally also deletes the payment if it is no longer referenced by the source.
+    //@OneToMany(mappedBy="author", orphanRemoval=true, cascade={CascadeType.ALL})
+    @OneToMany(mappedBy="author", fetch=FetchType.LAZY, cascade={CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private Set<Payment> payments;
-    private Set<Order> orders;
+    
+    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.REMOVE, CascadeType.MERGE})
+    private Set<OrderBill> orders;
+
+    private String name = "undefined";
+
     
     public Person(){
         this("undefined");
@@ -27,7 +52,7 @@ public class Person {
     public Person(String name){
         setName(name);
         payments = new HashSet<Payment>();
-        orders = new HashSet<Order>();
+        orders = new HashSet<OrderBill>();
     }
 
     public void setName(String name) {
@@ -53,7 +78,10 @@ public class Person {
     public double getSaldo(){
         double saldo = 0;
         for(Payment payment: getPayments()){
-            saldo += payment.getAmount();
+            saldo += payment.getTransactionValue();
+        }
+        for(OrderBill order: getOrders()){
+            saldo += order.getTransactionValue();
         }
         return saldo;
     }
@@ -62,24 +90,36 @@ public class Person {
         
     }
     
-    public void addOrder(Order order){
+    public void addOrder(OrderBill order){
         orders.add(order);
+        if(!order.getAuthors().contains(this)){
+            order.addAuthor(this);
+        }
     }
     
-    public void removeOrder(Order order){
+    public void removeOrder(OrderBill order){
         orders.remove(order);
+       if(order.getAuthors().contains(this)){
+            order.removeAuthor(this);
+        }
     }
     
-    public Set<Order> getOrders(){
+    public Set<OrderBill> getOrders(){
         return orders;
     }
     
     public void addPayment(Payment payment){
         payments.add(payment);
+        if(payment.getAuthor() != this){
+            payment.setAuthor(this);
+        }
     }
     
     public void removePayment(Payment payment){
-        
+        payments.remove(payment);
+        if(payment.getAuthor() == this){
+            payment.setAuthor(null);
+        }
     }
     
     public Set<Payment> getPayments(){
@@ -87,7 +127,7 @@ public class Person {
     }
     
     public boolean isRegisteredToOrder(long orderId){
-        for(Order order: orders){
+        for(OrderBill order: orders){
             if(order.getId() == orderId)
                 return true;
         }

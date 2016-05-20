@@ -6,7 +6,7 @@
 package database;
 
 import domain.Payment;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +20,14 @@ public interface PaymentRepository {
     
     public Payment getPayment(long paymentId);
     
-    public void updatePayment(long paymentId, double newAmount, LocalDateTime newDate);
+    public void updatePayment(long paymentId, double newAmount, LocalDate newDate);
     
     public void deletePayment(long paymentId);
     
+    public void deleteAllPayments();
+    
     public List<Payment> getAllPayments();
+
+    public void closeConnection() throws DbException;
+
 }

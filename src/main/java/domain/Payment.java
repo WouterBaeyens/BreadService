@@ -6,33 +6,66 @@
 package domain;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 /**
  *
  * @author Wouter
  */
+@Entity(name="Payment")
+@NamedQueries({
+    @NamedQuery(name="Payment.getAll", query="select p from Payment p"),
+}) 
 public class Payment implements Transaction{
-    private static AtomicLong nextId = new AtomicLong();
+    @Id
+    @GeneratedValue
     private long id;
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="authorId", updatable = true, insertable = true)
+    private Person author = null;
+
     
     private double amount;
-    private LocalDateTime date;
+    private LocalDate date;
     
-
-    public Payment(double amount, LocalDateTime date){
-        id = -1;
+    public Payment(double amount, LocalDate date){
         setAmount(amount);
         setDate(date);
     }
     
-        private void setId(){
-            this.id = id;
-        }
+    public Payment(){
+        this(0, LocalDate.now());
+    }
+    
+    public void setId(long id){
+        this.id = id;
+    }
     
         public long getId(){
         return id;
+    }
+    
+    public Person getAuthor(){
+        return author;
+    }
+        
+    public void setAuthor(Person author){
+        this.author = author;
+        if(!author.getPayments().contains(this)){
+            author.getPayments().add(this);
+        }
     }
     
     public void setAmount(double amount){
@@ -46,24 +79,38 @@ public class Payment implements Transaction{
         return amount;
     }
     
-    public void setDate(LocalDateTime datum){
+    public void setDate(LocalDate datum){
         this.date = datum;
     }
     
-    public LocalDateTime getDate(){
+    public LocalDate getDate(){
         return date;
     }
+    
+    public String getFormattedDate(){
+        return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
       
-    @Override
+ /*   @Override
     public boolean equals(Object obj){
         if (obj instanceof Payment){
             return ((Payment)obj).getId() == getId();
         }
         return false;
-    }
+    }*/
     
     @Override
     public int compareTo(Transaction transaction) {
         return this.getDate().compareTo(transaction.getDate());
+    }
+
+    @Override
+    public String getType() {
+        return "Payment";
+    }
+
+    @Override
+    public double getTransactionValue() {
+        return amount;
     }
 }

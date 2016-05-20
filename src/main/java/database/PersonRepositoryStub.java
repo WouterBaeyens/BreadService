@@ -57,6 +57,11 @@ public class PersonRepositoryStub implements PersonRepository{
            throw new DbException("No person with this id ("+ id + ") was found.");
         persons.remove(id);
     }
+    
+    @Override
+    public void deleteAllPersons(){
+        persons.clear();
+    }
 
     @Override
     public Set<Person> getAllPersons() {
@@ -65,7 +70,7 @@ public class PersonRepositoryStub implements PersonRepository{
         return personList;
     }
 
-    @Override
+    /*@Override
     public Set<Person> getAllPersonsForOrder(long orderId) {
         Set<Person> registeredPersons = new HashSet<>();
         for(Person person: persons.values()){
@@ -73,7 +78,7 @@ public class PersonRepositoryStub implements PersonRepository{
                 registeredPersons.add(person);
         }
         return registeredPersons;
-    }
+    }*/
 
     @Override
     public List<Payment> getPaymentsForPerson(long personId) {
@@ -82,4 +87,8 @@ public class PersonRepositoryStub implements PersonRepository{
         return paymentList;
     }
     
+@Override
+    public void closeConnection() throws DbException {
+        System.out.println("imitates a real database and acts like it's really closing a connection");
+    }
 }

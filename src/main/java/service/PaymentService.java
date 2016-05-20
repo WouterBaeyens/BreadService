@@ -7,6 +7,7 @@ package service;
 
 import database.PaymentRepository;
 import database.PaymentRepositoryFactory;
+import domain.Payment;
 
 /**
  *
@@ -17,7 +18,19 @@ public class PaymentService {
         private PaymentRepository repository;
         
         public PaymentService(String repositoryType){
-            PaymentRepositoryFactory.createPaymentRepository(repositoryType);
+            this.repository = PaymentRepositoryFactory.createPaymentRepository(repositoryType);
         }
+        
+        public void addPayment(Payment payment){
+            repository.addPayment(payment);
+        }
+        
+        public void deleteAllPayments(){
+            repository.deleteAllPayments();
+        }
+
+    void closeConnection() {
+        repository.closeConnection();
+    }
 
 }

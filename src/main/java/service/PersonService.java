@@ -8,8 +8,12 @@ package service;
 import database.DbException;
 import database.PersonRepository;
 import database.PersonRepositoryFactory;
-import domain.Order;
+import domain.OrderBill;
 import domain.Person;
+import domain.Transaction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,9 +47,21 @@ public class PersonService {
     public Set<Person> getAllPersons(){
         return repository.getAllPersons();
     }
-        /*returs the group of people whom have made a certain order*/
-    public Set<Person> getPersonsWithOrder(long orderId){
-        return repository.getAllPersonsForOrder(orderId);
+    
+    public void deleteAllPersons(){
+        repository.deleteAllPersons();
     }
 
+    public List<Transaction> getSortedTransactionsForPerson(long personId) {
+        List<Transaction> transactions = new ArrayList<>();
+        Person person = repository.getPerson(personId);
+        transactions.addAll(person.getOrders());
+        transactions.addAll(person.getPayments());
+        Collections.sort(transactions);
+        return transactions;
+    }
+
+    void closeConnection() {
+        repository.closeConnection();
+    }
 }

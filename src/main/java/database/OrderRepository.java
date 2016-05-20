@@ -5,8 +5,8 @@
  */
 package database;
 
-import domain.Order;
-import java.time.LocalDateTime;
+import domain.OrderBill;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -16,17 +16,21 @@ import java.util.Set;
  */
 public interface OrderRepository {
  
-    void addOrder(Order order);
+    void addOrder(OrderBill order);
     
     /*Deletes the order and all it's refernces to the persons it is assigned to*/
     void deleteOrder(long orderId);
     
-    void updateOrder(long orderId, double newCost, LocalDateTime newDate);
+    void deleteAllOrders();
+    
+    void updateOrder(long orderId, double newCost, LocalDate newDate);
     
     /*Returns the order based on it's id*/
-    Order getOrder(long orderId);
+    OrderBill getOrder(long orderId);
     
     /*Returns a list with all the existing orders.*/
-    List<Order> getAllOrders();
+    List<OrderBill> getAllOrders();
+    
+    public void closeConnection() throws DbException;
     
 }
