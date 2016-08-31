@@ -30,7 +30,10 @@ public class OrderRepositoryTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private OrderRepository repository;
+    //beforeClass/afterClass methods need to be static, 
+    //the factory of the repository should really only be closed after all the tests have run.
+    //so this should happen in the afterClass.
+    private static OrderRepository repository;
     private OrderBill genericOrder_with_current_date;
     private OrderBill genericOrder_with_past_date;
 
@@ -40,16 +43,17 @@ public class OrderRepositoryTest {
     
     @BeforeClass
     public static void setUpClass() {
+        repository = OrderRepositoryFactory.createOrderRepository("JPA");
+        repository.deleteAllOrders();
     }
     
     @AfterClass
     public static void tearDownClass() {
+        repository.closeConnection();
     }
     
     @Before
     public void setUp() {
-        repository = OrderRepositoryFactory.createOrderRepository("JPA");
-        repository.deleteAllOrders();
         genericOrder_with_current_date = new OrderBill(15, LocalDate.now());
         genericOrder_with_past_date = new OrderBill(0.38, LocalDate.MIN);
     }
@@ -57,7 +61,6 @@ public class OrderRepositoryTest {
     @After
     public void tearDown() {
         repository.deleteAllOrders();
-        repository.closeConnection();
     }
 
     /**

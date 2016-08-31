@@ -31,9 +31,9 @@ public class PersonRepositoryTest {
      @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private PersonRepository repository;
-    private OrderRepository orderRep;
-    private PaymentRepository paymentRep;
+    private static PersonRepository repository;
+    private static OrderRepository orderRep;
+    private static PaymentRepository paymentRep;
     private OrderBill order1;
     private OrderBill order2;
     private Payment payment1;
@@ -48,10 +48,22 @@ public class PersonRepositoryTest {
     
     @BeforeClass
     public static void setUpClass() {
+        repository = PersonRepositoryFactory.createPersonRepository("JPA");
+        orderRep = OrderRepositoryFactory.createOrderRepository("JPA");
+        paymentRep = PaymentRepositoryFactory.createPaymentRepository("JPA");
+        
+        repository.deleteAllPersons();
+        orderRep.deleteAllOrders();
+        paymentRep.deleteAllPayments();
+
+
     }
     
     @AfterClass
     public static void tearDownClass() {
+        repository.closeConnection();
+        paymentRep.closeConnection();
+        orderRep.closeConnection();
     }
     
     //orders will not be linked to persons in the setup
@@ -61,10 +73,6 @@ public class PersonRepositoryTest {
     //thus it should not be done in setUp, since it is not presumed to work as expected.
     @Before
     public void setUp() {
-        repository = PersonRepositoryFactory.createPersonRepository("JPA");
-        repository.deleteAllPersons();
-        orderRep = OrderRepositoryFactory.createOrderRepository("JPA");
-        orderRep.deleteAllOrders();
         order1 = new OrderBill(15, LocalDate.now());
         order2 = new OrderBill(13, LocalDate.now());
         orderRep.addOrder(order1);
@@ -76,7 +84,6 @@ public class PersonRepositoryTest {
         payment1 = new Payment(12.5, LocalDate.now());
         payment2 = new Payment(13.9, LocalDate.now());
         payment3 = new Payment(5.63, LocalDate.now());
-        paymentRep = PaymentRepositoryFactory.createPaymentRepository("JPA");
         //paymentRep.addPayment(payment1);
         //paymentRep.addPayment(payment2);
         //paymentRep.addPayment(payment3);
@@ -99,11 +106,6 @@ public class PersonRepositoryTest {
         repository.deleteAllPersons();
         orderRep.deleteAllOrders();
         paymentRep.deleteAllPayments();
-        
-        repository.closeConnection();
-        paymentRep.closeConnection();
-        orderRep.closeConnection();
-
     }
    
     @Test
@@ -131,9 +133,9 @@ public class PersonRepositoryTest {
     @Test
     public void testDeletePerson_removes_person_with_given_id_from_stub() {
         repository.addPerson(person_with_order1);
-        long id = person_with_order1.getId();
-        
-        repository.deletePerson(id);
+        repository.addPerson(person_with_payment1_and_order1);
+       person_with_order1.addOrder(order1);
+       repository.deletePerson(person_with_order1.getId());
         assertFalse(repository.getAllPersons().contains(person_with_order1));
     }
 

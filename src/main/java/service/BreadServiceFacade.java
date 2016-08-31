@@ -48,9 +48,9 @@ public class BreadServiceFacade implements Service{
     }
     
     public void deleteAll(){
+        personService.deleteAllPersons();
         orderService.deleteAllOrders();
         paymentService.deleteAllPayments();
-        personService.deleteAllPersons();
     }
     
     private void fillDatabaseWithFakeData(){

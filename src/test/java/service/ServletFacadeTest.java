@@ -35,7 +35,7 @@ public class ServletFacadeTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private BreadServiceFacade facade;
+    private static BreadServiceFacade facade;
     private Person genericPerson;
     private Person genericPerson2;
     private Person genericPerson3;
@@ -52,15 +52,18 @@ public class ServletFacadeTest {
     
     @BeforeClass
     public static void setUpClass() {
+        facade = new BreadServiceFacade("JPA");
+        facade.deleteAll();
+
     }
     
     @AfterClass
     public static void tearDownClass() {
+        facade.closeConnections();
     }
     
     @Before
     public void setUp() {
-        facade = new BreadServiceFacade("JPA");
         genericPerson = new Person("Jan");
         genericPerson2 = new Person("Piet");
         genericPerson3 = new Person("Joris");
@@ -75,7 +78,7 @@ public class ServletFacadeTest {
     
     @After
     public void tearDown() {
-        facade.closeConnections();
+        facade.deleteAll();
     }
 
     /**
@@ -98,8 +101,9 @@ public class ServletFacadeTest {
         //check of aan elke persoon de meegegeven order gekoppeld is.
         Set<Person> personsWithOrder = facade.getPersonsWithOrder(validOrder_with_current_date.getId());
         assertTrue(personsWithOrder.containsAll(persons));
+        
     }
-    /*
+    
         @Test
     public void getOrder_should_return_the_order_with_the_given_id(){
         for(Person person: persons){
@@ -108,18 +112,19 @@ public class ServletFacadeTest {
         facade.addOrder(validOrder_with_current_date, persons);
         long orderId = validOrder_with_current_date.getId();
             assertEquals(validOrder_with_current_date, facade.getOrder(orderId));
-    }*/
-/*
+    }
+
     @Test
     public void addPersonPayment_should_link_the_payment_to_the_given_person() {
+        facade.addPerson(genericPerson);
         facade.addPersonPayment(genericPerson, validPayement_with_current_date);
         assertTrue(genericPerson.getPayments().contains(validPayement_with_current_date));
     }
-*/
+
     /**
      * Test of getPersonTotalPayment method, of class BreadServiceFacade.
      */
-    /*@Test
+    @Test
     public void getPersonTotalPayment_should_return_the_total_amount_payed_by_the_given_person() {        
         facade.addPerson(genericPerson);
         facade.addPersonPayment(genericPerson, validPayement_with_current_date);
@@ -128,12 +133,12 @@ public class ServletFacadeTest {
         double actualPaymentResult = facade.getPersonTotalPayment(genericPerson);
         assertEquals(expectedPayment, actualPaymentResult, 0.000001);
 
-    }*/
+    }
 
     /**
      * Test of getPersonTotalOrderExpenses method, of class BreadServiceFacade.
      */
-    /*
+    
     @Test
     public void getPersonTotalOrderExpenses_should_return_the_total_cost_for_the_given_person() {
         persons.add(genericPerson);
@@ -145,8 +150,8 @@ public class ServletFacadeTest {
         double expectedExpenses = validOrder_with_current_date.getCostPerPerson() + validOrder_with_current_date2.getCostPerPerson();
         double actualExpenses = facade.getPersonTotalOrderExpenses(genericPerson);
         assertEquals(expectedExpenses, actualExpenses, 0.000001);
-    }*/
-    /*
+    }
+    
     @Test
     public void updateOrder_should_update_the_date_and_cost_for_the_order_with_the_given_id(){
         for(Person person: persons){
@@ -159,7 +164,7 @@ public class ServletFacadeTest {
         facade.updateOrder(orderId, newTotalCost, newDate);
         assertEquals(newDate, validOrder_with_current_date.getDate());
         assertEquals(newTotalCost, validOrder_with_current_date.getTotalCost(), 0.000001);
-    }*/
+    }
     
     @Test
     public void payment_constructor_with_negative_given_amount_should_throw_exception(){

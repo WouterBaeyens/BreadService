@@ -76,13 +76,18 @@ class PersonRepositoryDb implements PersonRepository {
             try{
             Person person = getPerson(id);
             manager.getTransaction().begin();
-            manager.remove(person);  
+
+            /*Query q = manager.createNamedQuery("Person.FetchOrders").setParameter("id", id);
+            Person p = (Person) q.getSingleResult();*/
+
+            
             //To avoid removing items from the list over which i am iterating
             List<OrderBill> ordersToBeRemoved = new ArrayList<>();
             ordersToBeRemoved.addAll(person.getOrders());
             for (OrderBill order : ordersToBeRemoved) {
                 person.removeOrder(order);
             }         
+            manager.remove(person);  
             /*List<Payment> paymentsToBeRemoved = new ArrayList<>();
             paymentsToBeRemoved.addAll(person.getPayments());
             for(Payment payment: paymentsToBeRemoved){
@@ -100,7 +105,8 @@ class PersonRepositoryDb implements PersonRepository {
     public void deleteAllPersons(){
                 try {
             for(Person person: getAllPersons()){
-                deletePerson(person.getId());
+                long id = person.getId();
+                deletePerson(id);
             }
         } catch (Exception e) {
             throw new DbException(e.getMessage(), e);
@@ -111,7 +117,9 @@ class PersonRepositoryDb implements PersonRepository {
     public Set<Person> getAllPersons() {
         try {
             Query query = manager.createNamedQuery("Person.getAll");
-            return new HashSet<>(query.getResultList());
+            Set<Person> persons = new HashSet<>(query.getResultList());
+            //Set<Person> persons = new HashSet<>();            
+            return persons;
         } catch (NoResultException e){
             return new HashSet<>();
         } catch (Exception e) {

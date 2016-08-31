@@ -27,7 +27,7 @@ public class PaymentRepositoryTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private PaymentRepository repository;
+    private static PaymentRepository repository;
     //A payment can't exist without a person initiating it.
     private Person genericPerson_for_owning_payments;
     private Payment genericPayment_with_current_date;
@@ -38,17 +38,18 @@ public class PaymentRepositoryTest {
     
     @BeforeClass
     public static void setUpClass() {
+        repository = PaymentRepositoryFactory.createPaymentRepository("JPA");
+        repository.deleteAllPayments();
     }
     
     @AfterClass
     public static void tearDownClass() {
+        repository.closeConnection();
     }
     
     @Before
     public void setUp() {
-        repository = PaymentRepositoryFactory.createPaymentRepository("JPA");
         // for now the original database is used for the tests as well
-        repository.deleteAllPayments();
         genericPayment_with_current_date = new Payment(15, LocalDate.now());
         genericPayment_with_past_date = new Payment(0.38, LocalDate.MIN);
     }
@@ -56,7 +57,6 @@ public class PaymentRepositoryTest {
     @After
     public void tearDown() {
         repository.deleteAllPayments();
-        repository.closeConnection();
     }
 
     /**

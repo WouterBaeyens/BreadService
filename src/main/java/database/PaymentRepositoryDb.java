@@ -30,7 +30,7 @@ class PaymentRepositoryDb implements PaymentRepository {
     }
     @Override
     public void addPayment(Payment payment) {
-        System.out.println("WARNING: payment added manually, this can cause a persitence error if linked to a person!");
+        System.out.println("WARNING: payment added manually, this can cause a persitence error if linked to a person when it is managed through cascade!");
         try{
             manager.getTransaction().begin();
             manager.persist(payment);

@@ -25,6 +25,7 @@ import javax.persistence.OneToMany;
  */
 @NamedQueries({
     @NamedQuery(name="Person.getAll", query="select p from Person p"),
+    @NamedQuery(name="Person.FetchOrders", query="select p from Person p join fetch p.orders where p.id = :id")
 }) 
 @Entity(name="Person")
 public class Person {
@@ -33,13 +34,16 @@ public class Person {
     @GeneratedValue
     private long id;
 
+    //Note: in order to keep author and payment seperated, 
+    //cascades should probably be removed and replaced by management on the payment side.
+    
     //The meaning of CascadeType.ALL is that the persistence will propagate (cascade) all EntityManager operations (PERSIST, REMOVE, REFRESH, MERGE, DETACH) to the relating entities.
     //orphanRemoval normally also deletes the payment if it is no longer referenced by the source.
     //@OneToMany(mappedBy="author", orphanRemoval=true, cascade={CascadeType.ALL})
     @OneToMany(mappedBy="author", fetch=FetchType.LAZY, cascade={CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private Set<Payment> payments;
     
-    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.REMOVE, CascadeType.MERGE})
+    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE})
     private Set<OrderBill> orders;
 
     private String name = "undefined";

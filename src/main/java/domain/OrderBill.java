@@ -26,8 +26,8 @@ import javax.persistence.Table;
  *
  * @author Wouter
  */
+//@Table(name="orderBillTable")
 @Entity(name="OrderBill")
-@Table(name="orderBillTable")
 @NamedQueries({
     @NamedQuery(name="Order.getAll", query="select o from OrderBill o"),
 }) 
