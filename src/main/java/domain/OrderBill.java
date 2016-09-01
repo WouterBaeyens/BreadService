@@ -8,8 +8,10 @@ package domain;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.persistence.Entity;
@@ -20,7 +22,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.Table;
 
 /**
  *
@@ -47,7 +48,9 @@ public class OrderBill implements Transaction{
     private Set<Person> authors;
     
     private double totalCost;
-    private LocalDate date;
+    //private LocalDate date;
+    private int yearNr;
+    private int weekNr;
     
     @Deprecated
     public OrderBill(LocalDate date, double costPerPerson){
@@ -62,11 +65,25 @@ public class OrderBill implements Transaction{
         authors = new HashSet<>();
     }
     
+    
         public OrderBill(double totalCost, LocalDate date){
         setTotalCost(totalCost);
         setDate(date);
         authors = new HashSet<>();
     }
+        
+        public OrderBill(double totalCost, int weekNr, int yearNr){
+            this.weekNr = weekNr;
+            this.yearNr = yearNr;
+            setTotalCost(totalCost);
+        }
+        
+        /*public OrderBill(double totalCost, int year, int week){
+            setTotalCost(totalCost);
+            this.year = year;
+            this.week = week;
+            authors = new HashSet<>();
+        }*/
     
         public OrderBill(){
             this(0,LocalDate.now());
@@ -110,15 +127,30 @@ public class OrderBill implements Transaction{
     }
     
         public void setDate(LocalDate date) {
-        this.date = date;   
+        weekNr = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+        yearNr = date.get(WeekFields.ISO.weekBasedYear());
+        //this.date = date;   
     }
     
     public LocalDate getDate(){
+        return getLocalDate(yearNr, weekNr, 1);
+        //return date;
+    }
+    
+    private LocalDate getLocalDate(int yearNr, int weekNr, int dayNr){
+        LocalDate date = LocalDate.now().withYear(yearNr)
+                .with(WeekFields.ISO.weekOfYear(), weekNr)
+                .with(WeekFields.ISO.dayOfWeek(), dayNr);
         return date;
     }
     
-        public String getFormattedDate(){
-        return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    
+    public String getFormattedDate(){   
+        return "Week " + weekNr + ": " 
+                + getLocalDate(yearNr,weekNr,1).format(DateTimeFormatter.ISO_LOCAL_DATE) + " - " 
+                + getLocalDate(yearNr,weekNr,7).format(DateTimeFormatter.ISO_LOCAL_DATE);
+        
+        //return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
     
     public Set<Person> getAuthors(){
@@ -137,6 +169,15 @@ public class OrderBill implements Transaction{
         if(author.getOrders().contains(this))
             author.removeOrder(this);
     }
+    
+    public int getYear(){
+        return yearNr;
+    }
+    
+    public int getWeek(){
+        return weekNr;
+    }
+    
     
    /* @Override
     public boolean equals(Object obj){

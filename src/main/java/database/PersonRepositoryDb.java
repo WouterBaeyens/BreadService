@@ -76,7 +76,7 @@ class PersonRepositoryDb implements PersonRepository {
             try{
             Person person = getPerson(id);
             manager.getTransaction().begin();
-
+               System.out.println("starting delete transaction");
             /*Query q = manager.createNamedQuery("Person.FetchOrders").setParameter("id", id);
             Person p = (Person) q.getSingleResult();*/
 
@@ -85,8 +85,10 @@ class PersonRepositoryDb implements PersonRepository {
             List<OrderBill> ordersToBeRemoved = new ArrayList<>();
             ordersToBeRemoved.addAll(person.getOrders());
             for (OrderBill order : ordersToBeRemoved) {
+                System.out.println("Deleting order: " + order.getId());
                 person.removeOrder(order);
             }         
+                System.out.println("Deleting person: " + person.getId());
             manager.remove(person);  
             /*List<Payment> paymentsToBeRemoved = new ArrayList<>();
             paymentsToBeRemoved.addAll(person.getPayments());

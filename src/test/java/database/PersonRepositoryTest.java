@@ -132,10 +132,13 @@ public class PersonRepositoryTest {
 
     @Test
     public void testDeletePerson_removes_person_with_given_id_from_stub() {
+        System.out.println("SETUP deleting person");
         repository.addPerson(person_with_order1);
         repository.addPerson(person_with_payment1_and_order1);
        person_with_order1.addOrder(order1);
+       System.out.println("START deleting person");
        repository.deletePerson(person_with_order1.getId());
+        System.out.println("END   deleting person");
         assertFalse(repository.getAllPersons().contains(person_with_order1));
     }
 

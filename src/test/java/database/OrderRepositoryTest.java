@@ -8,6 +8,7 @@ package database;
 import domain.OrderBill;
 import domain.Person;
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +56,7 @@ public class OrderRepositoryTest {
     @Before
     public void setUp() {
         genericOrder_with_current_date = new OrderBill(15, LocalDate.now());
-        genericOrder_with_past_date = new OrderBill(0.38, LocalDate.MIN);
+        genericOrder_with_past_date = new OrderBill(0.38, 12,2016);
     }
     
     @After
@@ -68,8 +69,8 @@ public class OrderRepositoryTest {
      */
     @Test
     public void addOrder_adds_the_given_order_to_the_stub() {
-        double cost = genericOrder_with_current_date.getTotalCost();
-        LocalDate date = genericOrder_with_current_date.getDate();
+        //double cost = genericOrder_with_current_date.getTotalCost();
+        //LocalDate date = genericOrder_with_current_date.getDate();
         repository.addOrder(genericOrder_with_current_date);
 
         long id = genericOrder_with_current_date.getId();
@@ -103,11 +104,12 @@ public class OrderRepositoryTest {
         
         double newCost = 15.4;
         LocalDate newDate = LocalDate.MAX;
+        int week = newDate.get(WeekFields.ISO.weekOfWeekBasedYear());
         
         repository.updateOrder(id, newCost, newDate);
         OrderBill order = repository.getOrder(id);
         assertEquals(newCost, order.getTotalCost(), 0.00001);
-        assertEquals(newDate, order.getDate());
+        assertEquals(week, order.getWeek());
     }
     
         /**

@@ -6,6 +6,7 @@
 package domain;
 
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,9 +59,10 @@ public class OrderTest {
     public void Order_should_create_new_order_with_given_date_and_amount() {
         double amount = 5;
         LocalDate date = LocalDate.now();
+        int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
         OrderBill order = new OrderBill(amount, date);
         assertEquals(amount, order.getTotalCost(), 0.00001);
-        assertEquals(date, order.getDate());
+        assertEquals(week, order.getWeek());
     }
     
     @Test

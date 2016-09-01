@@ -12,6 +12,7 @@ import domain.Person;
 import domain.Transaction;
 import service.BreadServiceFacade;
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -160,9 +161,10 @@ public class ServletFacadeTest {
         facade.addOrder(validOrder_with_current_date, persons);
         long orderId = validOrder_with_current_date.getId();
         LocalDate newDate = LocalDate.now();
+        int week = newDate.get(WeekFields.ISO.weekOfWeekBasedYear());
         double newTotalCost = 15.3;
         facade.updateOrder(orderId, newTotalCost, newDate);
-        assertEquals(newDate, validOrder_with_current_date.getDate());
+        assertEquals(week, validOrder_with_current_date.getWeek());
         assertEquals(newTotalCost, validOrder_with_current_date.getTotalCost(), 0.000001);
     }
     
