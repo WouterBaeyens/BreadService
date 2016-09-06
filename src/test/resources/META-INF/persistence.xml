@@ -6,11 +6,10 @@
     <class>domain.OrderBill</class>
     <class>domain.Payment</class>
     <properties>
-        
       <property name="eclipselink.logging.logger" value="DefaultLogger"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
-      <property name="eclipselink.logging.level.sql" value="FINE"/>
-        
+      <property name="eclipselink.logging.level" value="ALL"/>
+      <property name="eclipselink.logging.level.sql" value="ALL"/>
+      <property name="eclipselink.weaving.internal" value="false"/>
       <property name="javax.persistence.jdbc.url" value="jdbc:derby://localhost:1527/Bread_test;create=true"/>
       <property name="javax.persistence.jdbc.user" value="app"/>
       <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.ClientDriver"/>

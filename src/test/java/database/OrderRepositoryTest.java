@@ -103,15 +103,27 @@ public class OrderRepositoryTest {
         long id = genericOrder_with_current_date.getId();
         
         double newCost = 15.4;
-        LocalDate newDate = LocalDate.MAX;
+        LocalDate newDate = LocalDate.now().minusWeeks(12);
         int week = newDate.get(WeekFields.ISO.weekOfWeekBasedYear());
+        int year = newDate.get(WeekFields.ISO.weekBasedYear());
         
         repository.updateOrder(id, newCost, newDate);
         OrderBill order = repository.getOrder(id);
         assertEquals(newCost, order.getTotalCost(), 0.00001);
         assertEquals(week, order.getWeek());
+        assertEquals(year, order.getYear());
     }
     
+    @Test
+    public void getOrder_returns_order_with_given_week_and_year(){
+        repository.addOrder(genericOrder_with_past_date);
+        repository.addOrder(genericOrder_with_current_date);
+        int week = genericOrder_with_past_date.getWeek();
+        int year = genericOrder_with_past_date.getYear();
+        List<OrderBill> orders = repository.getOrders(week, year);
+        assertTrue(orders.contains(genericOrder_with_past_date));
+        assertFalse(orders.contains(genericOrder_with_current_date));
+    }
         /**
      * Test of getAllPersonsForOrder method, of class PersonRepositoryStub.
      */

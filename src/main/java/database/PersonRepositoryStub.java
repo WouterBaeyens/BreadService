@@ -87,6 +87,8 @@ public class PersonRepositoryStub implements PersonRepository{
         return paymentList;
     }
     
+    public void testFlush(){}
+    
 @Override
     public void closeConnection() throws DbException {
         System.out.println("imitates a real database and acts like it's really closing a connection");

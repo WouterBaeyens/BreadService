@@ -18,6 +18,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -30,6 +31,7 @@ import javax.persistence.OneToMany;
 @Entity(name="Person")
 public class Person {
     @Id
+    //@NotNull
     @Column(name="PERSON_ID")
     @GeneratedValue
     private long id;
@@ -44,6 +46,7 @@ public class Person {
     private Set<Payment> payments;
     
     @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE})
+    //@ManyToMany(mappedBy="authors", fetch=FetchType.LAZY)
     private Set<OrderBill> orders;
 
     private String name = "undefined";
@@ -108,6 +111,7 @@ public class Person {
         }
     }
     
+    
     public Set<OrderBill> getOrders(){
         return orders;
     }
@@ -136,5 +140,18 @@ public class Person {
                 return true;
         }
         return false;
+    }
+    
+    public String toString(){
+        String orders ="";
+        for(OrderBill o: this.getOrders()){
+            orders += o.getId() + " ";
+        }
+        String payments = "";
+        for(Payment p: this.getPayments()){
+            payments += p.getId() + " ";
+        }
+        String result = "Person" + this.getId() + ": " + this.getName() + " orders(" + orders +")" + "paym(" + payments + ")";
+        return result;
     }
 }

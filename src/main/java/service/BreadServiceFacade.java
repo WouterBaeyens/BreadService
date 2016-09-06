@@ -40,18 +40,21 @@ public class BreadServiceFacade implements Service{
     private PaymentService paymentService;
     
     public BreadServiceFacade(String repositoryType){
-        orderService = new OrderService(repositoryType);
         personService = new PersonService(repositoryType);
+        orderService = new OrderService(repositoryType);
         paymentService = new PaymentService(repositoryType);
         
-        deleteAll();
-        fillDatabaseWithFakeData();
+        //deleteAll();
+        //fillDatabaseWithFakeData();
     }
     
     @Override
     public void deleteAll(){
+        System.out.println("Deleting all persons");
         personService.deleteAllPersons();
+        System.out.println("Deleting all orders");
         orderService.deleteAllOrders();
+        System.out.println("Deleting all payments");
         paymentService.deleteAllPayments();
     }
     

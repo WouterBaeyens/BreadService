@@ -38,6 +38,13 @@ public class OrderService {
         }
     }
     
+    public OrderBill getOrder(int week, int year){
+        List<OrderBill> orders = repository.getOrders(week, year);
+        if(orders.size() > 1)
+            throw new ServiceException("getOrder: >1 found. " + orders);
+        return orders.get(0);
+    }
+    
     public void updateOrder(long orderId,double newCost, LocalDate newDate){
         repository.updateOrder(orderId, newCost, newDate);
     }

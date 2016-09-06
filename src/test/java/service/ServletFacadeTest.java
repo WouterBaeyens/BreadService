@@ -54,6 +54,7 @@ public class ServletFacadeTest {
     @BeforeClass
     public static void setUpClass() {
         facade = new BreadServiceFacade("JPA");
+        System.out.println("Deleting ALL");
         facade.deleteAll();
 
     }
@@ -85,24 +86,35 @@ public class ServletFacadeTest {
     /**
      * Test of addPerson method, of class BreadServiceFacade.
      */
-    @Test
+    /*@Test
     public void addPerson_voegt_nieuwe_persoon_toe() {
         facade.addPerson(genericPerson);
         assertTrue(facade.getAllPersons().contains(genericPerson));
-    }
+    }*/
     
     @Test
     public void addOrder_should_link_the_given_order_to_all_the_given_persons() {
         //registreer elke persoon uit de set
+        Person genericPerson2 = new Person("Piet");
+        Person genericPerson3 = new Person("Joris");
+        Set<Person> persons  = new HashSet<>();
+        persons.add(genericPerson2);
+        persons.add(genericPerson3);
+        
+        OrderBill  validOrder_with_current_date = new OrderBill(5, LocalDate.now());
+        
+        System.out.println("**START TEST** AddOrder with persons");
         for(Person person: persons){
             facade.addPerson(person);
         }
+        System.out.println("**Step1** persons persisted in db.");
         //add de order, en geef de personen mee.
+        
         facade.addOrder(validOrder_with_current_date, persons);
         //check of aan elke persoon de meegegeven order gekoppeld is.
         Set<Person> personsWithOrder = facade.getPersonsWithOrder(validOrder_with_current_date.getId());
         assertTrue(personsWithOrder.containsAll(persons));
-        
+        System.out.println("**End TEST** start cleaning");
     }
     
         @Test
@@ -177,7 +189,7 @@ public class ServletFacadeTest {
     
     //note: only the delete part is tested for now, and the relations will
     //      stay intact until jpa is further configured.
-    /*@Test
+    @Test
     public void deleteOrder_should_remove_the_order_and_all_its_relations(){
         for(Person person: persons){
             facade.addPerson(person);
@@ -187,7 +199,7 @@ public class ServletFacadeTest {
         facade.deleteOrder(orderId);
         assertFalse(facade.getAllOrders().contains(validOrder_with_current_date));
         //todo: check relations
-}*/
+}
     /*
         @Test
     public void getSortedTransactoinsForPerson_returns_all_payments_and_orders_for_a_given_person(){

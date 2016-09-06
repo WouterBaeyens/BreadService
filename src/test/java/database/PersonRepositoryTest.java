@@ -31,6 +31,7 @@ public class PersonRepositoryTest {
      @Rule
     public final ExpectedException exception = ExpectedException.none();
     
+    
     private static PersonRepository repository;
     private static OrderRepository orderRep;
     private static PaymentRepository paymentRep;
@@ -56,7 +57,7 @@ public class PersonRepositoryTest {
         orderRep.deleteAllOrders();
         paymentRep.deleteAllPayments();
 
-
+        
     }
     
     @AfterClass
@@ -73,6 +74,7 @@ public class PersonRepositoryTest {
     //thus it should not be done in setUp, since it is not presumed to work as expected.
     @Before
     public void setUp() {
+        //openingConnections();
         order1 = new OrderBill(15, LocalDate.now());
         order2 = new OrderBill(13, LocalDate.now());
         orderRep.addOrder(order1);
@@ -101,11 +103,28 @@ public class PersonRepositoryTest {
         
     }
     
+    //NOT CURRENTLY USED, MANAGER STILL SEEMS TO PERSIST OBJECTS? WHICH WAS THE MAIN ISSUE
+    //not very efficient, but remaking the repository (with it's managers)
+    //every time might avoid session leaks
+    public void openingConnections(){
+        repository = PersonRepositoryFactory.createPersonRepository("JPA");
+        orderRep = OrderRepositoryFactory.createOrderRepository("JPA");
+        paymentRep = PaymentRepositoryFactory.createPaymentRepository("JPA");
+        
+        repository.deleteAllPersons();
+        orderRep.deleteAllOrders();
+        paymentRep.deleteAllPayments();
+    }
+    
     @After
     public void tearDown() {
         repository.deleteAllPersons();
         orderRep.deleteAllOrders();
         paymentRep.deleteAllPayments();
+    
+        /*repository.closeConnection();
+        paymentRep.closeConnection();
+        orderRep.closeConnection();*/
     }
    
     @Test
@@ -122,9 +141,9 @@ public class PersonRepositoryTest {
     public void updatePerson_updates_the_person_with_the_given_id_to_the_given_values() {
         repository.addPerson(person_with_order1);
         long id = person_with_order1.getId();
-        
+        person_with_order1.addOrder(order1);
         String newName = "Emma";
-        
+        Person p = repository.getPerson(person_with_order1.getId());
         repository.updatePerson(id, newName);
         Person person = repository.getPerson(id);
         assertEquals(newName, person.getName());
@@ -134,11 +153,11 @@ public class PersonRepositoryTest {
     public void testDeletePerson_removes_person_with_given_id_from_stub() {
         System.out.println("SETUP deleting person");
         repository.addPerson(person_with_order1);
-        repository.addPerson(person_with_payment1_and_order1);
-       person_with_order1.addOrder(order1);
-       System.out.println("START deleting person");
+        OrderBill o3 = new OrderBill(5, LocalDate.now());
+        person_with_order1.addOrder(order1);
+       orderRep.addOrder(o3);   
+       repository.getPerson(person_with_order1.getId());
        repository.deletePerson(person_with_order1.getId());
-        System.out.println("END   deleting person");
         assertFalse(repository.getAllPersons().contains(person_with_order1));
     }
 
@@ -153,4 +172,6 @@ public class PersonRepositoryTest {
         List<Payment> paymentList = repository.getPaymentsForPerson(person_with_payment2_and_payment3.getId());
         assertTrue(paymentList.containsAll(expectedList) && expectedList.containsAll(paymentList));
     }
+    
+
 }

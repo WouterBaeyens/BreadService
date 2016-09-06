@@ -9,10 +9,12 @@ import domain.OrderBill;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -28,6 +30,9 @@ public class OrderRepositoryStub implements OrderRepository{
     public OrderRepositoryStub(){
         orders = new HashMap<Long, OrderBill>();
         
+    }
+    
+    public void testFlush(){
     }
     
     //in this stub an object can be added twice, since the id and the
@@ -54,6 +59,12 @@ public class OrderRepositoryStub implements OrderRepository{
         if(!orders.containsKey(orderId))
             throw new DbException("no order with  this id (" + orderId + ") was found.");
         return orders.get(orderId);
+    }
+    
+    @Override
+    public List<OrderBill> getOrders(int week, int year){
+        List<OrderBill> foundOrders = orders.values().stream().filter(o -> o.getWeek() == week && o.getYear() == year).collect(Collectors.toList());
+        return foundOrders;
     }
     
         @Override

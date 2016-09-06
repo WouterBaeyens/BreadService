@@ -35,6 +35,8 @@ public interface PersonRepository {
     /*Returns all the payments for a person*/
     public List<Payment> getPaymentsForPerson(long personId);
  
+    public void testFlush();
+    
     public void closeConnection() throws DbException;
         
 }

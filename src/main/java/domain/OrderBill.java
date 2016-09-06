@@ -5,6 +5,7 @@
  */
 package domain;
 
+import database.DbException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +15,9 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -22,6 +26,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -31,11 +36,17 @@ import javax.persistence.NamedQuery;
 @Entity(name="OrderBill")
 @NamedQueries({
     @NamedQuery(name="Order.getAll", query="select o from OrderBill o"),
+    @NamedQuery(name="Order.findOrders", query="select o from OrderBill o where o.weekNr = :w and o.yearNr = :y")
 }) 
 public class OrderBill implements Transaction{
     //ensures the incrementing code is atomic
     //so objects created at same time -> not the same id
     @Id
+    @Basic(optional = false)                             
+    @NotNull
+    //Commented out, because eclipse link can't fucking recognize that this entity is order and not person
+    //sorry i'm frustrated
+    //@Column(name="ORDER_ID")
     @GeneratedValue
     private long id;
     
@@ -76,6 +87,7 @@ public class OrderBill implements Transaction{
             this.weekNr = weekNr;
             this.yearNr = yearNr;
             setTotalCost(totalCost);
+            authors = new HashSet<>();
         }
         
         /*public OrderBill(double totalCost, int year, int week){
@@ -89,7 +101,7 @@ public class OrderBill implements Transaction{
             this(0,LocalDate.now());
         }
     public void setId(long id){
-        this.id = id;
+        throw new DbException("don't chang your id!");
     }
     
     public long getId(){
@@ -170,6 +182,15 @@ public class OrderBill implements Transaction{
             author.removeOrder(this);
     }
     
+    public void removeAllAuthors(){
+        Set<Person> authorSet = new HashSet(this.getAuthors());
+        authors.clear();
+        for(Person author: authorSet){
+            System.out.println("removed " + author);
+            author.removeOrder(this);
+        }
+    }
+    
     public int getYear(){
         return yearNr;
     }
@@ -200,6 +221,15 @@ public class OrderBill implements Transaction{
     @Override
     public double getTransactionValue() {
         return -getTotalCost() / getNumberOfPersonsForOrder();
+    }
+    
+    public String toString(){
+        String authors ="";
+        for(Person p : this.getAuthors()){
+            authors += p.getId() + " ";
+        }
+        String result = "Order" + this.getId() + ": " + this.getDate() + " " + this.getTotalCost() + "$ payed by (" + authors + ")";
+        return result;
     }
     
     

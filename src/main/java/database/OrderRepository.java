@@ -28,9 +28,13 @@ public interface OrderRepository {
     /*Returns the order based on it's id*/
     OrderBill getOrder(long orderId);
     
+    List<OrderBill> getOrders(int week, int year);
+    
     /*Returns a list with all the existing orders.*/
     List<OrderBill> getAllOrders();
     
     public void closeConnection() throws DbException;
+    
+    public void testFlush();
     
 }

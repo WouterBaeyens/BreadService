@@ -27,12 +27,16 @@ class PersonRepositoryDb implements PersonRepository {
     private EntityManager manager;
     
     public PersonRepositoryDb(String namePersistenceUnit){
+        //factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
         factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
         manager = factory.createEntityManager();
     }
 
     @Override
     public void addPerson(Person person) {
+        Person p = getPerson(person.getId());
+        if(p!=null)
+            throw new DbException("person already persisted: " + p);
         try{
             manager.getTransaction().begin();
             manager.persist(person);
@@ -40,28 +44,24 @@ class PersonRepositoryDb implements PersonRepository {
             manager.getTransaction().commit();
         } catch (Exception e){
             manager.getTransaction().rollback();
-            throw new DbException(e.getMessage(), e);
+            throw new DbException("Error adding" + p + "\n" + e.getMessage(), e);
         }
     }
 
     @Override
     public Person getPerson(long id) {
         try {
-            manager.getTransaction().begin();
             Person person = manager.find(Person.class, id);
-            manager.flush();
-            manager.getTransaction().commit();
             return person;
         } catch (Exception e) {
-            manager.getTransaction().rollback();
             throw new DbException(e.getMessage(),e);
 
         }    }
 
     @Override
     public void updatePerson(long id, String newName) {
-         try{
-            Person person = getPerson(id);
+        Person person = getPerson(id); 
+        try{
             person.setName(newName);
         } catch (Exception e){
             throw new DbException(e.getMessage(), e);
@@ -72,47 +72,54 @@ class PersonRepositoryDb implements PersonRepository {
     //later on, either a substitute for bill has to be found, or persons should only be archived to avoid this problem
     //since this is not the owner class of the relationship person-order
     //the order references have to be updated manually.
+    
+    //note: if you flush, 
+            //testDeletePerson() (in PersonRepositoryTest)  throwns an exception
+            //It seems to be a problem with synchronisation, 
+            //but i would like to here the exact reason for this if anyone knows.
     public void deletePerson(long id) {
-            try{
-            Person person = getPerson(id);
-            manager.getTransaction().begin();
+        Person person = getPerson(id);    
+        
+            
                System.out.println("starting delete transaction");
             /*Query q = manager.createNamedQuery("Person.FetchOrders").setParameter("id", id);
             Person p = (Person) q.getSingleResult();*/
 
-            
             //To avoid removing items from the list over which i am iterating
-            List<OrderBill> ordersToBeRemoved = new ArrayList<>();
-            ordersToBeRemoved.addAll(person.getOrders());
-            for (OrderBill order : ordersToBeRemoved) {
-                System.out.println("Deleting order: " + order.getId());
+            List<OrderBill> ordersToBeUnlinked = new ArrayList<>();
+            ordersToBeUnlinked.addAll(person.getOrders());
+            
+            System.out.println("person to be deleted" + person);
+            for (OrderBill order : ordersToBeUnlinked) {
+                
                 person.removeOrder(order);
+                System.out.println(order + "deleted");
             }         
-                System.out.println("Deleting person: " + person.getId());
-            manager.remove(person);  
-            /*List<Payment> paymentsToBeRemoved = new ArrayList<>();
-            paymentsToBeRemoved.addAll(person.getPayments());
-            for(Payment payment: paymentsToBeRemoved){
-                person.removePayment(payment);
-            }*/
+            
+            System.out.println(person + " ready for removal");
+
+        try{       
+            manager.getTransaction().begin();
+            manager.merge(person);
+            manager.remove(person);
+            
+
+
             manager.flush();
+            
             manager.getTransaction().commit();
         } catch (Exception e){
             manager.getTransaction().rollback();
-            throw new DbException(e.getMessage(), e);
+            throw new DbException("error deleting " + person + "\n" + e.getMessage(), e);
         }    
     }
     
     @Override
     public void deleteAllPersons(){
-                try {
             for(Person person: getAllPersons()){
                 long id = person.getId();
                 deletePerson(id);
             }
-        } catch (Exception e) {
-            throw new DbException(e.getMessage(), e);
-        }
     }
 
     @Override
@@ -139,6 +146,12 @@ class PersonRepositoryDb implements PersonRepository {
         } catch (Exception e) {
             throw new DbException(e.getMessage(), e);
         }
+    }
+    
+    public void testFlush(){
+        manager.getTransaction().begin();
+        manager.flush();
+        manager.getTransaction().commit();
     }
     
     @Override
