@@ -12,6 +12,8 @@ import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
 import database.ServiceRepositoryInterface;
+import domain.OrderWeek;
+import domain.OrderWeekPK;
 import domain.Transaction;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -35,6 +37,7 @@ import javafx.util.converter.LocalDateTimeStringConverter;
  */
 public class BreadServiceFacade implements Service{
 
+    private OrderWeekService orderWeekService;
     private OrderService orderService;
     private PersonService personService;
     private PaymentService paymentService;
@@ -42,6 +45,7 @@ public class BreadServiceFacade implements Service{
     public BreadServiceFacade(String repositoryType){
         personService = new PersonService(repositoryType);
         orderService = new OrderService(repositoryType);
+        orderWeekService = new OrderWeekService(repositoryType);
         paymentService = new PaymentService(repositoryType);
         
         //deleteAll();
@@ -50,12 +54,10 @@ public class BreadServiceFacade implements Service{
     
     @Override
     public void deleteAll(){
-        System.out.println("Deleting all persons");
         personService.deleteAllPersons();
-        System.out.println("Deleting all orders");
         orderService.deleteAllOrders();
-        System.out.println("Deleting all payments");
         paymentService.deleteAllPayments();
+       orderWeekService.deleteAllWeeks();
     }
     
     private void fillDatabaseWithFakeData(){
@@ -131,40 +133,81 @@ public class BreadServiceFacade implements Service{
      *Todo: remove this function in the long run when all uses are refractored to use the method below 
     */
     public void addOrder(OrderBill order, Set<Person> persons){
-        orderService.addOrder(order);
+        addOrder(order);
+        System.out.println("added new order");
+        OrderBill managedOrder = 
+        orderService.updateOrder(order);
+        System.out.println("updated order");
+     //   OrderBill managedOrder = orderService.getOrder(order.getWeekNr(), order.getYearNr());
         for(Person person:persons){
-            person.addOrder(order);
+            managedOrder.addAuthor(person);
         }
+        System.out.println("persons ready for update");
+        orderService.updateOrder(managedOrder);
+        System.out.println("order w persons updated");
     }
     
         /*adds an order for the given group of people*/
     public void addOrder(Set<Long> personIds, OrderBill order){
-        orderService.addOrder(order);
+        //orderWeekService.addOrder(order);
+        addOrder(order);
+        //OrderBill managedOrder = orderService.getOrder(order.getWeekNr(), order.getYearNr());
+        //OrderBill managedOrder = orderService.updateOrder(order);
         for(Long id:personIds){
-            getPerson(id).addOrder(order);
+            order.addAuthor(getPerson(id));
         }
+        orderService.updateOrder(order);
     }
     
-    public OrderBill getOrder(long orderId){
-        return orderService.getOrder(orderId);
+    //
+    private void addOrder(OrderBill order){
+        OrderWeekPK pk = order.getOrderPK();
+        if(pk == null)
+             throw new ServiceException("Err. adding order (" + order + ") can't add order without pk");
+        OrderWeek week = orderWeekService.getWeek(order.getWeekNr(), order.getYearNr());
+        if(week == null){
+            OrderWeek weekToAdd = order.getOrderWeek();
+            order.removeOrderWeek();
+            orderWeekService.addWeek(weekToAdd);
+            order.setOrderWeekOneWay(weekToAdd);
+            orderService.addOrder(order);
+            order.setOrderWeek(weekToAdd);
+            orderWeekService.refreshWeek(weekToAdd);
+            orderService.refreshOrder(order);
+        }
+        else if(week.getOrderBill() == null)
+            week.setOrder(order);
     }
     
-    public void updateOrder(long orderId,double newCost, LocalDate newDate){
-        orderService.updateOrder(orderId, newCost, newDate);
+    public OrderBill getOrder(int week, int year){
+        return orderService.getOrder(week, year);
     }
     
-    public void deleteOrder(long orderId){
-        orderService.deleteOrder(orderId);
+    public OrderBill getCurrentOrder(){
+        return orderService.getCurrentOrder();
+    }
+    
+    public void updateOrder(int week, int year,double newCost){
+        orderService.updateOrder(week, year, newCost);
+    }
+    
+    public void deleteOrder(int week, int year){
+        orderService.deleteOrder(week, year);
     }
     
     public List<OrderBill> getAllOrders(){
         return orderService.getAllOrders();
     }
+    
+    public OrderWeek getWeek(int week, int year){
+        return orderWeekService.getWeek(week, year);
+    }
         
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement){
-        //paymentService.addPayment(payement);
         person.addPayment(payement);
+        personService.updatePerson(person);
+                //paymentService.addPayment(payement);
     }
     
     /*returns the total amount this person has payed up until now for his orders*/
@@ -188,8 +231,8 @@ public class BreadServiceFacade implements Service{
     }
     
     /*returs the group of people whom have made a certain order*/
-    public Set<Person> getPersonsWithOrder(long orderId){
-        return orderService.getPersonsWithOrder(orderId);
+    public Set<Person> getPersonsWithOrder(int week, int year){
+        return orderService.getPersonsWithOrder(week, year);
     }
 
     @Override

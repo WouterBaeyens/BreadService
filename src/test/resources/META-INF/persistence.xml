@@ -5,6 +5,7 @@
     <class>domain.Person</class>
     <class>domain.OrderBill</class>
     <class>domain.Payment</class>
+    <class>domain.OrderWeek</class>
     <properties>
       <property name="eclipselink.logging.logger" value="DefaultLogger"/>
       <property name="eclipselink.logging.level" value="ALL"/>

@@ -62,7 +62,7 @@ public class OrderTest {
         int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
         OrderBill order = new OrderBill(amount, date);
         assertEquals(amount, order.getTotalCost(), 0.00001);
-        assertEquals(week, order.getWeek());
+        assertEquals(week, order.getWeekNr());
     }
     
     @Test

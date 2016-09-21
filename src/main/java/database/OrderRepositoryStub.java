@@ -6,6 +6,7 @@
 package database;
 
 import domain.OrderBill;
+import domain.OrderWeekPK;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,11 +25,10 @@ public class OrderRepositoryStub implements OrderRepository{
 
     //ensures the incrementing code is atomic
     //so objects created at same time -> not the same id
-    private static AtomicLong nextId = new AtomicLong();
-    private Map<Long, OrderBill> orders;
+    private Map<OrderWeekPK, OrderBill> orders;
     
     public OrderRepositoryStub(){
-        orders = new HashMap<Long, OrderBill>();
+        orders = new HashMap<OrderWeekPK, OrderBill>();
         
     }
     
@@ -41,39 +41,35 @@ public class OrderRepositoryStub implements OrderRepository{
     //    and it will be assigned to a second key (which has the updated id value)
     @Override
     public void addOrder(OrderBill order) {
-        order.setId(nextId.incrementAndGet());
-        if(orders.containsKey(order.getId()))
-            throw new DbException("order with this id (" + order.getId() + ") already exists");
-        orders.put(order.getId(), order);
     }
 
     @Override
-    public void deleteOrder(long orderId) {
+    public void deleteOrder(OrderWeekPK orderId) {
         if(!orders.containsKey(orderId))
             throw new DbException("no order with  this id (" + orderId + ") was found.");
         orders.remove(orderId);
     }
 
     @Override
-    public OrderBill getOrder(long orderId) {
+    public OrderBill getOrder(OrderWeekPK orderId) {
         if(!orders.containsKey(orderId))
             throw new DbException("no order with  this id (" + orderId + ") was found.");
         return orders.get(orderId);
     }
     
-    @Override
+    /*@Override
     public List<OrderBill> getOrders(int week, int year){
-        List<OrderBill> foundOrders = orders.values().stream().filter(o -> o.getWeek() == week && o.getYear() == year).collect(Collectors.toList());
+        List<OrderBill> foundOrders = orders.values().stream().filter(o -> o.getWeekNr() == week && o.getYearNr() == year).collect(Collectors.toList());
         return foundOrders;
-    }
+    }*/
     
-        @Override
-    public void updateOrder(long orderId, double newCost, LocalDate newDate) {
+    /*
+    public void updateOrder(long orderId, double newCost) {
         OrderBill order = getOrder(orderId);
         order.setTotalCost(newCost);
-        order.setDate(newDate);
-    }
-
+        //order.setDate(newDate);
+    }*/
+    
     @Override
     public List<OrderBill> getAllOrders() {
         List<OrderBill> orderList = new ArrayList<>();
@@ -89,6 +85,21 @@ public class OrderRepositoryStub implements OrderRepository{
     @Override
     public void deleteAllOrders() {
         orders.clear();
+    }
+
+    @Override
+    public OrderBill updateOrder(OrderBill order) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void refreshOrder(OrderBill order) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean isManaged(OrderBill order) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

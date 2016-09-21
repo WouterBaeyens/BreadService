@@ -6,6 +6,7 @@
 package service;
 
 import domain.OrderBill;
+import domain.OrderWeek;
 import domain.Payment;
 import domain.Person;
 import domain.Transaction;
@@ -45,15 +46,19 @@ public interface Service {
         - because person references order and not the other way around
             this can't be refractored to the OrderBill constructor as of now*/
     public void addOrder(Set<Long> personIds, OrderBill order);
+        
+    public OrderBill getOrder(int week, int year);
     
-    public OrderBill getOrder(long orderId);
+    public OrderBill getCurrentOrder();
     
-    public void updateOrder(long orderId,double newCost, LocalDate newDate);
+    public void updateOrder(int week, int year,double newCost);
     
-    public void deleteOrder(long orderId);
+    public void deleteOrder(int week, int year);
         
     /*returns all the orders that are stored*/
     public List<OrderBill> getAllOrders();
+    
+        public OrderWeek getWeek(int week, int year);
     
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement);
@@ -65,7 +70,7 @@ public interface Service {
     public double getPersonTotalOrderExpenses(Person person);
     
     /*returs the group of people whom have made a certain order*/
-    public Set<Person> getPersonsWithOrder(long orderId);
+    public Set<Person> getPersonsWithOrder(int week, int year);
     
     public List<Transaction> getSortedTransactionsForPerson(long personId);
     

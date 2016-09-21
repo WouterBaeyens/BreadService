@@ -5,6 +5,9 @@
  */
 package domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import database.DbException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -17,65 +20,73 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.MapsId;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 /**
  *
  * @author Wouter
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
 //@Table(name="orderBillTable")
 @Entity(name="OrderBill")
 @NamedQueries({
     @NamedQuery(name="Order.getAll", query="select o from OrderBill o"),
-    @NamedQuery(name="Order.findOrders", query="select o from OrderBill o where o.weekNr = :w and o.yearNr = :y")
+    @NamedQuery(name="Order.findOrders", query="select o from OrderBill o join o.orderWeek as w where (w.orderWeekPK.weekNr = :w and w.orderWeekPK.yearNr = :y)")
 }) 
 public class OrderBill implements Transaction{
     //ensures the incrementing code is atomic
     //so objects created at same time -> not the same id
-    @Id
-    @Basic(optional = false)                             
-    @NotNull
-    //Commented out, because eclipse link can't fucking recognize that this entity is order and not person
-    //sorry i'm frustrated
-    //@Column(name="ORDER_ID")
-    @GeneratedValue
-    private long id;
+    @EmbeddedId
+    private OrderWeekPK orderWeekPK;
+    
+    
+    /*@ManyToMany(mappedBy="orders", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
+    // @ManyToMany(mappedBy="orders", fetch=FetchType.EAGER)*/
     
     @ManyToMany
     @JoinTable(
             name="ORDER_PERSON",
-            joinColumns=@JoinColumn(name="ORDER_ID"),
-            inverseJoinColumns=@JoinColumn(name="PERSON_ID")
-    )
+            joinColumns = {
+                @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
+                @JoinColumn(name="yearNr", referencedColumnName = "yearNr")},
+            inverseJoinColumns=@JoinColumn(name="PERSON_ID")          
+    )    
     private Set<Person> authors;
     
+    @OneToOne
+    @JoinColumns(value = {
+        @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
+        @JoinColumn(name="yearNr", referencedColumnName = "yearNr")})
+    @MapsId
+    private OrderWeek orderWeek;
+    
+    
+    @Column(name="totalCost")
     private double totalCost;
-    //private LocalDate date;
-    private int yearNr;
-    private int weekNr;
     
-    @Deprecated
-    public OrderBill(LocalDate date, double costPerPerson){
-        setCostPerPerson(costPerPerson);
-        setDate(date);
-    }
+    @Transient
+    private static final DateTimeFormatter euFormatter = DateTimeFormatter.ofPattern("dd/MM/yy");
     
-    public OrderBill(long id, double totalCost, LocalDate date){
-        this.id = id;
+    public OrderBill(double totalCost){
         setTotalCost(totalCost);
-        setDate(date);
         authors = new HashSet<>();
     }
-    
     
         public OrderBill(double totalCost, LocalDate date){
         setTotalCost(totalCost);
@@ -84,8 +95,7 @@ public class OrderBill implements Transaction{
     }
         
         public OrderBill(double totalCost, int weekNr, int yearNr){
-            this.weekNr = weekNr;
-            this.yearNr = yearNr;
+            setOrderWeek(new OrderWeek(weekNr, yearNr));
             setTotalCost(totalCost);
             authors = new HashSet<>();
         }
@@ -97,15 +107,22 @@ public class OrderBill implements Transaction{
             authors = new HashSet<>();
         }*/
     
-        public OrderBill(){
-            this(0,LocalDate.now());
-        }
+        public OrderBill(){}
+        
     public void setId(long id){
-        throw new DbException("don't chang your id!");
+        throw new DbException("this ID is readonly!");
     }
     
-    public long getId(){
-        return id;
+    public OrderWeekPK getOrderPK(){
+        return orderWeekPK;
+    }
+    
+    public void setOrderPK(OrderWeekPK orderWeekPK){
+        this.orderWeekPK = orderWeekPK;
+    }
+    
+    public int getId(){
+        return orderWeekPK == null ? -1 : orderWeekPK.hashCode();
     }
     
     public void setTotalCost(double amount){
@@ -128,41 +145,29 @@ public class OrderBill implements Transaction{
     int getNumberOfPersonsForOrder(){
         return authors.size();
     }
-
-    @Deprecated
-    public void setCostPerPerson(double amount) {
-        throw new DomainException("unsupported operation");
-    }
     
     public double getCostPerPerson(){
         return getTotalCost() / getNumberOfPersonsForOrder();
     }
     
-        public void setDate(LocalDate date) {
-        weekNr = date.get(WeekFields.ISO.weekOfWeekBasedYear());
-        yearNr = date.get(WeekFields.ISO.weekBasedYear());
-        //this.date = date;   
+    public void setDate(LocalDate date) {
+        int weekNr = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+        int yearNr = date.get(WeekFields.ISO.weekBasedYear());
+        setOrderWeek(new OrderWeek(weekNr, yearNr));
     }
     
+    @JsonIgnore
     public LocalDate getDate(){
-        return getLocalDate(yearNr, weekNr, 1);
+        return orderWeek.getDate();
         //return date;
     }
     
-    private LocalDate getLocalDate(int yearNr, int weekNr, int dayNr){
-        LocalDate date = LocalDate.now().withYear(yearNr)
-                .with(WeekFields.ISO.weekOfYear(), weekNr)
-                .with(WeekFields.ISO.dayOfWeek(), dayNr);
-        return date;
-    }
+
     
-    
-    public String getFormattedDate(){   
-        return "Week " + weekNr + ": " 
-                + getLocalDate(yearNr,weekNr,1).format(DateTimeFormatter.ISO_LOCAL_DATE) + " - " 
-                + getLocalDate(yearNr,weekNr,7).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        
-        //return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    public String getFormattedDate(){  
+        if(orderWeek == null)
+            return "No date.";
+        return orderWeek.getFormattedDate();
     }
     
     public Set<Person> getAuthors(){
@@ -186,27 +191,49 @@ public class OrderBill implements Transaction{
         Set<Person> authorSet = new HashSet(this.getAuthors());
         authors.clear();
         for(Person author: authorSet){
-            System.out.println("removed " + author);
+            System.out.println("removed [" + author + "] from [" + this + "]");
             author.removeOrder(this);
         }
     }
     
-    public int getYear(){
-        return yearNr;
+    public int getYearNr(){
+        if(orderWeek == null)
+            return -1;
+        return orderWeek.getYearNr();
     }
     
-    public int getWeek(){
-        return weekNr;
+    
+    public int getWeekNr(){
+        if(orderWeek == null)
+            return -1;
+        return orderWeek.getWeekNr();
     }
     
+    public OrderWeek getOrderWeek(){
+        return orderWeek;
+    }
     
-   /* @Override
-    public boolean equals(Object obj){
-        if (obj instanceof OrderBill){
-            return ((OrderBill)obj).getId() == getId();
-        }
-        return false;
-    }*/
+    public void setOrderWeek(OrderWeek orderWeek){
+        this.orderWeek = orderWeek;
+        this.orderWeekPK = orderWeek.getOrderWeekPK();
+        if(orderWeek.getOrderBill() == null )
+            orderWeek.setOrder(this);
+        else if(orderWeek.getOrderBill() != this)
+            throw new DomainException("ERROR: this bill is already linked to another week: (" + orderWeek + " | " + this + ")");
+    }
+    
+    public void setOrderWeekOneWay(OrderWeek orderWeek){
+        this.orderWeek = orderWeek;
+        this.orderWeekPK = orderWeek.getOrderWeekPK();
+    }
+    
+    public void removeOrderWeek(){
+        OrderWeek o = orderWeek;
+        orderWeek = null;
+        orderWeekPK = null;
+        if (o != null && o.getOrderBill() != null)
+            o.removeOrderBill();
+    }
 
     @Override
     public int compareTo(Transaction transaction) {
@@ -228,7 +255,7 @@ public class OrderBill implements Transaction{
         for(Person p : this.getAuthors()){
             authors += p.getId() + " ";
         }
-        String result = "Order" + this.getId() + ": " + this.getDate() + " " + this.getTotalCost() + "$ payed by (" + authors + ")";
+        String result = "Order" + this.getId() + ": " + this.getFormattedDate() + " " + this.getTotalCost() + "$ payed by (" + authors + ")";
         return result;
     }
     

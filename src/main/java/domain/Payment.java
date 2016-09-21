@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -18,6 +19,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -29,16 +31,20 @@ import javax.persistence.NamedQuery;
 }) 
 public class Payment implements Transaction{
     @Id
+    @NotNull
     @GeneratedValue
+    @Column(name="id")
     private long id;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="authorId", updatable = true, insertable = true)
     private Person author = null;
 
-    
+    @Column(name="amount")
     private double amount;
+    
     private LocalDate date;
+    private static final DateTimeFormatter euFormatter = DateTimeFormatter.ofPattern("dd/MM/yy");
     
     public Payment(double amount, LocalDate date){
         setAmount(amount);
@@ -88,7 +94,7 @@ public class Payment implements Transaction{
     }
     
     public String getFormattedDate(){
-        return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return date.format(euFormatter);
     }
       
  /*   @Override
@@ -112,5 +118,11 @@ public class Payment implements Transaction{
     @Override
     public double getTransactionValue() {
         return amount;
+    }
+    
+    public String toString(){
+        String authorId = this.getAuthor() == null ? "" :  Long.toString(this.getAuthor().getId());
+        String result = "Payment" + this.getId() + ": " + this.getDate().format(euFormatter) + " " + this.getAmount() + "$ payed by (" + authorId + ")";
+        return result;
     }
 }

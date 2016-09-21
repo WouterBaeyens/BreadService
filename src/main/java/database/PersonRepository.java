@@ -23,7 +23,7 @@ public interface PersonRepository {
     /*Returns the person with the given email*/
     public Person getPerson(long id);
     
-    public void updatePerson(long id, String newName);
+    public void updatePerson(Person person);
     
     public void deletePerson(long id);
     
@@ -36,6 +36,8 @@ public interface PersonRepository {
     public List<Payment> getPaymentsForPerson(long personId);
  
     public void testFlush();
+    
+    public boolean isManaged(Person person);
     
     public void closeConnection() throws DbException;
         

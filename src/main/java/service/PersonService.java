@@ -52,6 +52,10 @@ public class PersonService {
         repository.deleteAllPersons();
     }
 
+    public void updatePerson(Person p){
+        repository.updatePerson(p);
+    }
+    
     public List<Transaction> getSortedTransactionsForPerson(long personId) {
         List<Transaction> transactions = new ArrayList<>();
         Person person = repository.getPerson(personId);

@@ -36,35 +36,44 @@ class PersonRepositoryDb implements PersonRepository {
     public void addPerson(Person person) {
         Person p = getPerson(person.getId());
         if(p!=null)
-            throw new DbException("person already persisted: " + p);
+            throw new DbException("[Err. already persisted: old " + p + " | new " + person + "] ");
         try{
             manager.getTransaction().begin();
             manager.persist(person);
+
             manager.flush();
             manager.getTransaction().commit();
         } catch (Exception e){
             manager.getTransaction().rollback();
-            throw new DbException("Error adding" + p + "\n" + e.getMessage(), e);
+            throw new DbException("[Err. adding" + person + "]" + e.getMessage(), e);
         }
     }
 
     @Override
     public Person getPerson(long id) {
+        Person person = null;
         try {
-            Person person = manager.find(Person.class, id);
+            person = manager.find(Person.class, id);
             return person;
         } catch (Exception e) {
-            throw new DbException(e.getMessage(),e);
-
+            manager.getTransaction().rollback();
+            String message = person == null ? 
+                    "[Err. person with id " + id + " not found]":
+                    "[Err. getting person " + person + "]";
+            throw new DbException(message  + e.getMessage(),e);
         }    }
 
     @Override
-    public void updatePerson(long id, String newName) {
-        Person person = getPerson(id); 
-        try{
-            person.setName(newName);
-        } catch (Exception e){
-            throw new DbException(e.getMessage(), e);
+    public void updatePerson(Person person) {
+            try {
+            manager.getTransaction().begin();
+            manager.merge(person);
+            //manager.flush();
+            manager.getTransaction().commit();
+        } catch (Exception e) {
+            if(manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. updating person " + person+ "] " + e.getMessage(),e);
         }    }
 
     @Override
@@ -78,12 +87,21 @@ class PersonRepositoryDb implements PersonRepository {
             //It seems to be a problem with synchronisation, 
             //but i would like to here the exact reason for this if anyone knows.
     public void deletePerson(long id) {
+        removeOrdersFromPerson(id);
         Person person = getPerson(id);    
-        
-            
+        try{
+            manager.getTransaction().begin();
+            manager.remove(person);
+            manager.getTransaction().commit();
+        } catch (Exception e){
+            if (manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. deleting " + person + "] " + e.getMessage(), e);
+        }
+            /*
                System.out.println("starting delete transaction");
-            /*Query q = manager.createNamedQuery("Person.FetchOrders").setParameter("id", id);
-            Person p = (Person) q.getSingleResult();*/
+            //Query q = manager.createNamedQuery("Person.FetchOrders").setParameter("id", id);
+            //Person p = (Person) q.getSingleResult();
 
             //To avoid removing items from the list over which i am iterating
             List<OrderBill> ordersToBeUnlinked = new ArrayList<>();
@@ -98,9 +116,15 @@ class PersonRepositoryDb implements PersonRepository {
             
             System.out.println(person + " ready for removal");
 
-        try{       
+        try{    
+            System.out.println("Merging person " + person);
             manager.getTransaction().begin();
             manager.merge(person);
+        } catch (Exception e1){
+            throw new DbException("Error merging person" + person + "\n" + e1.getMessage(), e1);
+        }
+        try {
+            System.out.println("Removing person " + person);
             manager.remove(person);
             
 
@@ -112,34 +136,91 @@ class PersonRepositoryDb implements PersonRepository {
             manager.getTransaction().rollback();
             throw new DbException("error deleting " + person + "\n" + e.getMessage(), e);
         }    
+            System.out.println("PERSON REMOVAL SUCCESS" + person);*/
+    }
+    
+    private void removeOrdersFromPerson(long id){
+        Person person = getPerson(id);
+        try{
+            manager.getTransaction().begin();
+            manager.refresh(person);
+            List<OrderBill> orders = new ArrayList(person.getOrders());
+            if(orders != null && orders.size() > 0){
+                  //System.out.println("remove o-p relation. person persisted? " + manager.contains(orders[0]));
+                person.removeAllOrders();
+                for(OrderBill o: orders)
+                    manager.merge(o);
+                // update should be unnecessary since this is all done within a transactrion
+                // if update needs to be added, it has to happen outside of this transaction
+                //updatePerson(person); 
+            }
+             manager.getTransaction().commit();
+        }catch (Exception e){
+            if(manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. removing person-order relation for p_id = " + id + "] " + e.getMessage(), e);
+        }
     }
     
     @Override
     public void deleteAllPersons(){
-            for(Person person: getAllPersons()){
+        manager.clear();
+        System.out.println("deleting all persons");    
+        for(Person person: getAllPersons()){
                 long id = person.getId();
                 deletePerson(id);
             }
+            /*
+            for(Person p: getAllPersons()){
+                 List<OrderBill> ordersToBeUnlinked = new ArrayList<>();
+                ordersToBeUnlinked.addAll(p.getOrders());
+                System.out.println("person to be deleted" + p);
+                for (OrderBill order : ordersToBeUnlinked) {                
+                    p.removeOrder(order);
+                    System.out.println(order + "deleted");
+            }    
+            }
+             try {
+            manager.getTransaction().begin();
+            manager.createNativeQuery("truncate table Order_Person").executeUpdate();
+             manager.getTransaction().commit();
+        } catch (Exception e) {
+            manager.getTransaction().rollback();
+            throw new DbException("ERROR truncating Order_Person: " + e.getMessage(), e);
+        }
+            try {
+            manager.getTransaction().begin();
+            manager.createQuery("delete from Person").executeUpdate();
+             manager.getTransaction().commit();
+        } catch (Exception e) {
+            manager.getTransaction().rollback();
+            throw new DbException(e.getMessage(), e);
+        }*/
     }
 
     @Override
     public Set<Person> getAllPersons() {
         try {
+            //manager.getTransaction().begin();
             Query query = manager.createNamedQuery("Person.getAll");
-            Set<Person> persons = new HashSet<>(query.getResultList());
-            //Set<Person> persons = new HashSet<>();            
+            //List<Person> persons = new ArrayList<>(query.getResultList());
+            Set<Person> persons = new HashSet<>(query.getResultList());            
+            //manager.getTransaction().commit();
             return persons;
         } catch (NoResultException e){
             return new HashSet<>();
         } catch (Exception e) {
-            throw new DbException(e.getMessage(),e);
+            if(manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. getting all persons]" + e.getMessage(),e);
         }    
     }
 
     @Override
+    //I don't think this belongs in the repositoryDb anymore
     public List<Payment> getPaymentsForPerson(long personId) {
-        try {
-            Person person = getPerson(personId);
+        Person person = getPerson(personId);
+        try {          
             List<Payment> paymentList = new ArrayList<>();
             paymentList.addAll(person.getPayments());
             return paymentList;
@@ -152,6 +233,10 @@ class PersonRepositoryDb implements PersonRepository {
         manager.getTransaction().begin();
         manager.flush();
         manager.getTransaction().commit();
+    }
+    
+    public boolean isManaged(Person person){
+        return manager.contains(person);
     }
     
     @Override

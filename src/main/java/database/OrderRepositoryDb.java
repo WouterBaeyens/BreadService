@@ -6,6 +6,8 @@
 package database;
 
 import domain.OrderBill;
+import domain.OrderWeek;
+import domain.OrderWeekPK;
 import domain.Person;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,100 +35,126 @@ public class OrderRepositoryDb implements OrderRepository{
     }
     
     @Override
-    public void addOrder(OrderBill order) {
-        OrderBill o = getOrder(order.getId());
-        if(o != null)
-            throw new DbException("order already persisted: " + o);
-        try{
+    //since OrderBill's only PK is a FK, it can not be correctly persisted on it's own
+    public void addOrder(OrderBill order){
+            //throw new DbException("For now I'm sticking to the idea that an order cannot exist on it's own and should be persisted by adding it to the orderweek");
+            OrderBill o = getOrder(order.getOrderPK());
+            if(o != null)
+            throw new DbException("[Err. already persisted: old " + o + " | new " + order + "] ");
+       
+            try {
             manager.getTransaction().begin();
             manager.persist(order);
-            manager.flush();
             manager.getTransaction().commit();
-        } catch (Exception e){
-            manager.getTransaction().rollback();
-            throw new DbException(order + " - " + e.getMessage(), e);
-        }
-    }
-
-    public void testFlush(){
-        System.out.println("testing flush");
-        manager.getTransaction().begin();
-            manager.flush();
-            manager.getTransaction().commit();
-         System.out.println("flush finished");
-    }
-    @Override
-    public void deleteOrder(long orderId) {
-        
-            OrderBill order = getOrder(orderId);            
-            //removes all existing links of this order with it's authors
-            Set<Person> ps = order.getAuthors();
-            order.removeAllAuthors();   
-            manager.getTransaction().begin();
-            manager.flush();
-            manager.getTransaction().commit();
-        try{
-            manager.getTransaction().begin();
-            manager.remove(order);
-            manager.flush();
-            manager.getTransaction().commit();
-        } catch (Exception e){
-            manager.getTransaction().rollback();
-            throw new DbException("error deleting " + order + "\n" + e.getMessage(), e);
-        }
+        } catch (Exception e) {
+            if(manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. persisting error (already persisted through week?)]" + e.getMessage(),e);
+        }    
     }
     
-
-    //http://stackoverflow.com/questions/8307578/what-is-the-best-way-to-update-the-entity-in-jpa
-    //in conclusion: since the entity is persistent it seemed best 
-    //to just change the cost with it's setters from here.
-    @Override
-    public void updateOrder(long orderId, double newCost, LocalDate newDate) {
-          OrderBill order = getOrder(orderId); 
-        try{          
-            order.setDate(newDate);
-            order.setTotalCost(newCost);
-        } catch (Exception e){
-            throw new DbException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public OrderBill getOrder(long orderId) {
+        @Override
+    public OrderBill getOrder(OrderWeekPK orderWeekPK) {
+        OrderBill order = null;
         try {
-            OrderBill order = manager.find(OrderBill.class, orderId);
+            manager.getTransaction().begin();
+            order = manager.find(OrderBill.class, orderWeekPK);
+            manager.getTransaction().commit();
             return order;
         } catch (Exception e) {
-            throw new DbException(e.getMessage(),e);
-
+            manager.getTransaction().rollback();
+            String message = order == null ? 
+                    "[Err. person with id " + orderWeekPK + " not found]":
+                    "[Err. getting person " + order + "]";
+            throw new DbException(message + e.getMessage(),e);
+        }
+    }
+    
+        //http://stackoverflow.com/questions/8307578/what-is-the-best-way-to-update-the-entity-in-jpa
+    //in conclusion: since the entity is persistent it seemed best 
+    //to just change the cost with it's setters from here.
+    //note: i've come to disagree with the above comments, but will leave them for reference
+    @Override
+    public OrderBill updateOrder(OrderBill order){
+            try {
+            manager.getTransaction().begin();
+            OrderBill dbOrder = manager.merge(order);
+            for(Person p : order.getAuthors())
+                manager.merge(p);
+            manager.flush();
+            manager.getTransaction().commit();
+            return dbOrder;
+        } catch (Exception e) {
+            manager.getTransaction().rollback();
+            throw new DbException("[Err. updating order " + order+ "] " + e.getMessage(),e);
         }
     }
 
     @Override
-    public List<OrderBill> getOrders(int week, int year){
-        //Query query = sessionFactory.getCurrentSession().createQuery("from OrderBill o where o.week like :email");
-        //List<User> userList = query.setParameter("email", "john%").list();
-        Query query = manager.createNamedQuery("Order.findOrders", OrderBill.class);
-        query.setParameter("w", week);
-        query.setParameter("y", year);
-        List<OrderBill> foundOrders = query.getResultList();        
-        if(foundOrders == null)
-            foundOrders = new ArrayList();
-        return foundOrders;
+    //note: if week is null, the sysout might cause an error because of manager.contains(null)
+    public void deleteOrder(OrderWeekPK orderWeekPK) {
+        removeAuthorsFromOrder(orderWeekPK);
+        OrderBill order = getOrder(orderWeekPK);
+        OrderWeek week = order.getOrderWeek();
+        try{
+            manager.getTransaction().begin();            
+            manager.remove(order);
+            manager.flush();
+            manager.refresh(week);
+            manager.getTransaction().commit();
+        } catch (Exception e){
+            if (manager.getTransaction().isActive())
+            manager.getTransaction().rollback();
+            throw new DbException("[Err. deleting " + order + "] " + e.getMessage(), e);
+        }
     }
     
-
+    public void refreshOrder(OrderBill order){
+        try {
+            manager.getTransaction().begin();
+            manager.refresh(order);
+            manager.getTransaction().commit();
+        } catch (Exception e) {
+            manager.getTransaction().rollback();
+            throw new DbException("[Err. refreshing " + order + " in OrderRep.] " + e.getMessage(),e);
+        }
+    }
     
+    private void removeAuthorsFromOrder(OrderWeekPK orderWeekPK){
+        OrderBill order = getOrder(orderWeekPK);
+        try{
+            manager.getTransaction().begin(); 
+            System.out.println("remove o-p relation. order persisted? " + manager.contains(order));
+            Object[] p = order.getAuthors().toArray();
+            if(p != null && p.length > 0){
+                System.out.println("remove o-p relation. person persisted? " + manager.contains(p[0]));
+                order.removeAllAuthors();
+                // update should be unnecessary since this is all done within a transactrion
+                // if update needs to be added, it has to happen outside of this transaction
+                // since updateOrder is executed inside a transaction of it's own
+                //updateOrder(person); 
+            }
+            manager.getTransaction().commit();
+        }catch (Exception e){
+            manager.getTransaction().rollback();
+            throw new DbException("[Err. removing order-person relation for o_PK = " + orderWeekPK +"] " + e.getMessage(), e);
+        }
+        
+    }
+
     @Override
     public List<OrderBill> getAllOrders() {
         try {
+            manager.getTransaction().begin();
             Query query = manager.createNamedQuery("Order.getAll");
             List<OrderBill> orders = new ArrayList<>(query.getResultList());
+            manager.getTransaction().commit();
             return orders;
         } catch (NoResultException e){
             return new ArrayList<>();
         }catch (Exception e) {
-            throw new DbException(e.getMessage(),e);
+            manager.getTransaction().rollback();
+            throw new DbException("[Err. getting all orders]" + e.getMessage(),e);
         }
     }
 
@@ -141,18 +169,18 @@ public class OrderRepositoryDb implements OrderRepository{
     }
 
     @Override
-    public void deleteAllOrders() {
-            //manager.getTransaction().begin();
-            //manager.createNativeQuery("truncate table OrderBill").executeUpdate();
-            //delete seemed safer
-            //manager.createQuery("delete from OrderBill").executeUpdate();
-            //manager.getTransaction().commit();
-            for(OrderBill o: getAllOrders())
-                deleteOrder(o.getId());
-
-        
+    public boolean isManaged(OrderBill order){
+        return manager.contains(order);
     }
     
-    
-    
+    @Override
+    public void deleteAllOrders() {
+        manager.clear();
+            List<OrderBill> orders = getAllOrders();
+            System.out.println("deleting all (" + orders.size() + ") orders");
+            for(OrderBill o: orders){
+                System.out.println(o);
+                deleteOrder(o.getOrderPK());
+            }
+    }
 }

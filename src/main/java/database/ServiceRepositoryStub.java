@@ -102,7 +102,7 @@ public class ServiceRepositoryStub implements ServiceRepositoryInterface{
     @Override
     public void updateOrder(long orderId, LocalDate newDate, double newCostPerPerson){
          OrderBill order = getOrder(orderId);
-         order.setCostPerPerson(newCostPerPerson);
+         order.setTotalCost(newCostPerPerson * order.getAuthors().size());
          order.setDate(newDate);   
     }
     

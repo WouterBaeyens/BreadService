@@ -5,6 +5,9 @@
  */
 package domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -14,16 +17,20 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import jdk.nashorn.internal.objects.NativeArray;
 
 /**
  *
  * @author Wouter
  */
+@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
 @NamedQueries({
     @NamedQuery(name="Person.getAll", query="select p from Person p"),
     @NamedQuery(name="Person.FetchOrders", query="select p from Person p join fetch p.orders where p.id = :id")
@@ -42,13 +49,24 @@ public class Person {
     //The meaning of CascadeType.ALL is that the persistence will propagate (cascade) all EntityManager operations (PERSIST, REMOVE, REFRESH, MERGE, DETACH) to the relating entities.
     //orphanRemoval normally also deletes the payment if it is no longer referenced by the source.
     //@OneToMany(mappedBy="author", orphanRemoval=true, cascade={CascadeType.ALL})
-    @OneToMany(mappedBy="author", fetch=FetchType.LAZY, cascade={CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @OneToMany(mappedBy="author", fetch=FetchType.LAZY, cascade={CascadeType.ALL})
     private Set<Payment> payments;
     
-    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE})
-    //@ManyToMany(mappedBy="authors", fetch=FetchType.LAZY)
+    
+    
+    /*@ManyToMany
+    @JoinTable(
+            name="ORDER_PERSON",
+            inverseJoinColumns = {
+                @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
+                @JoinColumn(name="yearNr", referencedColumnName = "yearNr")},
+            joinColumns=@JoinColumn(name="PERSON_ID")          
+    )    */
+    
+    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
     private Set<OrderBill> orders;
 
+    @Column(name="name")
     private String name = "undefined";
 
     
@@ -111,6 +129,15 @@ public class Person {
         }
     }
     
+    public void removeAllOrders(){
+        Set<OrderBill> orderSet = new HashSet(this.getOrders());
+        orders.clear();
+        for(OrderBill order: orderSet){
+            System.out.println("removed [" + order + "] from [" + this + "]");
+            order.removeAuthor(this);
+        }
+    }
+    
     
     public Set<OrderBill> getOrders(){
         return orders;
@@ -132,6 +159,15 @@ public class Person {
     
     public Set<Payment> getPayments(){
         return payments;
+    }
+    
+    public double getPaymentCurrentWeek(){
+    OrderWeek week = new OrderWeek(LocalDate.now());
+        for(OrderBill o : orders){
+        if(o.getOrderPK().equals(week.getOrderWeekPK()))
+                return o.getCostPerPerson();
+    }
+        return 0;
     }
     
     public boolean isRegisteredToOrder(long orderId){

@@ -44,7 +44,7 @@ public interface ServiceRepositoryInterface {
     public void deleteOrder(long orderId);
     
     
-    public void updateOrder(long orderId, LocalDate newDate, double newCostPerPerson);
+    public void updateOrder(long orderId, LocalDate newDate, double newCost);
     
     /*Returns all the orders that have been set so far*/
     public Set<OrderBill> getAllOrders();

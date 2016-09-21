@@ -6,6 +6,7 @@
 package database;
 
 import domain.OrderBill;
+import domain.OrderWeekPK;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -19,22 +20,26 @@ public interface OrderRepository {
     void addOrder(OrderBill order);
     
     /*Deletes the order and all it's refernces to the persons it is assigned to*/
-    void deleteOrder(long orderId);
+    void deleteOrder(OrderWeekPK orderWeekPK);
     
     void deleteAllOrders();
     
-    void updateOrder(long orderId, double newCost, LocalDate newDate);
+    //I've changed the structure so that each week is an entity that can have an orther attached to it.
+    //void updateOrder(long orderId, double newCost, LocalDate newDate);
+    //returning a managed instance of order as suggested by
+    //http://stackoverflow.com/questions/19746240/jpa-merge-unmanaged-entity
+    OrderBill updateOrder(OrderBill order);
+    
+    void refreshOrder(OrderBill order);
     
     /*Returns the order based on it's id*/
-    OrderBill getOrder(long orderId);
-    
-    List<OrderBill> getOrders(int week, int year);
+    OrderBill getOrder(OrderWeekPK orderWeek);
     
     /*Returns a list with all the existing orders.*/
     List<OrderBill> getAllOrders();
     
     public void closeConnection() throws DbException;
     
-    public void testFlush();
+    public boolean isManaged(OrderBill order);
     
 }

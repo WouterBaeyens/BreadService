@@ -7,14 +7,11 @@
     <class>domain.Person</class>
     <class>domain.OrderBill</class>
     <class>domain.Payment</class>
+    <class>domain.OrderWeek</class>
     <properties>
-      <!-- <property name="eclipselink.logging.logger" value="DefaultLogger"/>
+      <property name="eclipselink.logging.logger" value="DefaultLogger"/>
       <property name="eclipselink.logging.level" value="WARNING"/>
       <property name="eclipselink.logging.level.sql" value="WARNING"/>
-      <property name="eclipselink.logging.logger" value="DefaultLogger"/>
-      <property name="eclipselink.logging.level" value="OFF"/>
-      <property name="eclipselink.logging.level.sql" value="OFF"/>
-      -->
       <property name="javax.persistence.jdbc.url" value="jdbc:derby://localhost:1527/Bread;create=true"/>
       <property name="javax.persistence.jdbc.user" value="app"/>
       <property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.ClientDriver"/>

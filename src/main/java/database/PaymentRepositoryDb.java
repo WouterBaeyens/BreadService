@@ -100,6 +100,7 @@ class PaymentRepositoryDb implements PaymentRepository {
             manager.createQuery("delete from Payment").executeUpdate();
             manager.getTransaction().commit();
         } catch (Exception e) {
+            manager.getTransaction().rollback();
             throw new DbException(e.getMessage(), e);
         }
         

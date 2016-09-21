@@ -9,8 +9,10 @@ import database.DbException;
 import database.OrderRepository;
 import database.OrderRepositoryFactory;
 import domain.OrderBill;
+import domain.OrderWeekPK;
 import domain.Person;
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Set;
 
@@ -30,31 +32,38 @@ public class OrderService {
         repository.addOrder(order);
     }
     
-    public OrderBill getOrder(long orderId){
-        try{
-            return repository.getOrder(orderId);
-        } catch (DbException ex){
-            throw new ServiceException(ex.getMessage());
-        }
-    }
-    
     public OrderBill getOrder(int week, int year){
-        List<OrderBill> orders = repository.getOrders(week, year);
-        if(orders.size() > 1)
-            throw new ServiceException("getOrder: >1 found. " + orders);
-        return orders.get(0);
+        return repository.getOrder(new OrderWeekPK(week, year));
     }
     
-    public void updateOrder(long orderId,double newCost, LocalDate newDate){
-        repository.updateOrder(orderId, newCost, newDate);
+    public OrderBill getCurrentOrder(){
+        LocalDate date = LocalDate.now();
+        int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+        int year = date.get(WeekFields.ISO.weekBasedYear());
+        return getOrder(week, year);
     }
     
-    public void deleteOrder(long orderId){
-        repository.deleteOrder(orderId);
+    public void updateOrder(int week, int year,double newCost){
+        OrderBill order = getOrder(week, year);
+        order.setTotalCost(newCost);
+        //update probably not necessary, since order is managed and cost is no FK/PK
+        repository.updateOrder(order);
     }
     
-    public Set<Person> getPersonsWithOrder(long orderId){
-        OrderBill order = repository.getOrder(orderId);
+    public OrderBill updateOrder(OrderBill order){
+        return repository.updateOrder(order);
+    }
+    
+    public void refreshOrder(OrderBill order){
+        repository.refreshOrder(order);
+    }
+    
+    public void deleteOrder(int week, int year){
+        repository.deleteOrder(new OrderWeekPK(week, year));
+    }
+    
+    public Set<Person> getPersonsWithOrder(int week, int year){
+        OrderBill order = repository.getOrder(new OrderWeekPK(week, year));
         return order.getAuthors();
     }
     

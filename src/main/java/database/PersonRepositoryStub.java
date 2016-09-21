@@ -46,9 +46,8 @@ public class PersonRepositoryStub implements PersonRepository{
     }
     
         @Override
-    public void updatePerson(long id, String newName) {
-        Person person = getPerson(id);
-        person.setName(newName);
+    public void updatePerson(Person person) {
+        persons.put(person.getId(), person);
     }
 
     @Override
@@ -92,5 +91,11 @@ public class PersonRepositoryStub implements PersonRepository{
 @Override
     public void closeConnection() throws DbException {
         System.out.println("imitates a real database and acts like it's really closing a connection");
+    }
+
+
+    @Override
+    public boolean isManaged(Person person) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
