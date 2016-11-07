@@ -5,6 +5,7 @@
  */
 package service;
 
+import database.GeneralRepositoryFactory;
 import database.OrderWeekRepository;
 import database.OrderWeekRepositoryFactory;
 import domain.OrderBill;
@@ -22,6 +23,8 @@ public class OrderWeekService {
     
     public OrderWeekService(String repositoryType){
         this.repository = OrderWeekRepositoryFactory.createOrderWeekRepository(repositoryType);
+        //this.repository = GeneralRepositoryFactory.createOrderWeekRepository(repositoryType);
+
     }
     
     public void addWeek(OrderWeek orderWeek){
@@ -29,7 +32,22 @@ public class OrderWeekService {
     }
     
     public OrderWeek getWeek(int week, int year){
-        return repository.getWeek(new OrderWeekPK(week, year));
+        if(isWeekInDb(week, year))
+            return repository.getWeek(new OrderWeekPK(week, year));
+        else
+            return new OrderWeek(week, year);
+    }
+    
+    public List<OrderWeek> getAllAcademicYearDates(){
+        return OrderWeek.getAllAcademicYearDates();
+    }
+    
+    public boolean isWeekInDb(int week, int year){
+        return repository.isWeekInDb(new OrderWeekPK(week, year));
+    }
+    
+    public boolean weekExists(int week, int year){
+        return repository.getWeek(new OrderWeekPK(week, year)) == null;
     }
     
     public List<OrderWeek> getAllWeeks(){
@@ -67,6 +85,10 @@ public class OrderWeekService {
         //Week: (init, persisted with other order)
         else
             throw new ServiceException("Err. adding order (" + order + ") another order already exists for that week " + "(" + week.getOrderBill() + ")");
+    }
+    
+    public void clearManager(){
+        repository.clearManager();
     }
     
     public void refreshWeek(OrderWeek week){

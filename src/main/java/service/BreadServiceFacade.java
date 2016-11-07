@@ -18,11 +18,13 @@ import domain.Transaction;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.util.converter.LocalDateTimeStringConverter;
 
 /**
@@ -165,7 +167,7 @@ public class BreadServiceFacade implements Service{
         if(pk == null)
              throw new ServiceException("Err. adding order (" + order + ") can't add order without pk");
         OrderWeek week = orderWeekService.getWeek(order.getWeekNr(), order.getYearNr());
-        if(week == null){
+        if(!orderWeekService.isWeekInDb(order.getWeekNr(), order.getYearNr())){
             OrderWeek weekToAdd = order.getOrderWeek();
             order.removeOrderWeek();
             orderWeekService.addWeek(weekToAdd);
@@ -175,8 +177,17 @@ public class BreadServiceFacade implements Service{
             orderWeekService.refreshWeek(weekToAdd);
             orderService.refreshOrder(order);
         }
-        else if(week.getOrderBill() == null)
-            week.setOrder(order);
+        else if(week.getOrderBill() == null){
+            order.removeOrderWeek();
+            OrderWeek week2 = orderWeekService.getWeek(week.getWeekNr(), week.getYearNr());
+            orderWeekService.refreshWeek(week2);
+            order.setOrderWeekOneWay(week2); 
+            orderService.addOrder(order);
+            order.setOrderWeek(week2);
+            orderWeekService.updateWeek(week2);
+            orderWeekService.clearManager();
+            orderService.refreshOrder(order);
+        }
     }
     
     public OrderBill getOrder(int week, int year){
@@ -192,7 +203,26 @@ public class BreadServiceFacade implements Service{
     }
     
     public void deleteOrder(int week, int year){
+        OrderBill o = orderService.getOrder(week, year);
+        personService.clearManager();
+        Set<Person> persons = new HashSet(o.getAuthors());
+        /*List<Long> personIds = o.getAuthors().stream().map(Person::getId).collect(Collectors.toList());
+        Set<Person> handledPersons = new HashSet();
+        for(long i: personIds){
+            handledPersons.add(personService.getPerson(i));
+        }*/
         orderService.deleteOrder(week, year);
+        OrderWeek orderWeek = orderWeekService.getWeek(week, year);
+        orderWeekService.refreshWeek(orderWeek);
+        /*for(Person p: handledPersons){
+            personService.refreshPerson(p);
+        }*/
+        for(Person p: persons){
+            Person p2 = personService.getPerson(p.getId());
+            personService.refreshPerson(p2);
+            int uselessvarfordebug  = 0;
+        }
+        orderWeekService.deleteWeek(week, year);
     }
     
     public List<OrderBill> getAllOrders(){
@@ -202,12 +232,30 @@ public class BreadServiceFacade implements Service{
     public OrderWeek getWeek(int week, int year){
         return orderWeekService.getWeek(week, year);
     }
+    
+    public void addWeek(OrderWeek week){
+        orderWeekService.addWeek(week);
+    }
+    
+    public boolean isWeekInDb(int week, int year){
+        return orderWeekService.isWeekInDb(week, year);
+    }
+    
+    public OrderWeek getCurrentWeek(){
+         LocalDate date = LocalDate.now();
+        int week = date.get(WeekFields.ISO.weekOfWeekBasedYear());
+        int year = date.get(WeekFields.ISO.weekBasedYear());
+        return getWeek(week, year);
+    }
+    
+        public List<OrderWeek> getAllAcademicYearDates(){
+            return orderWeekService.getAllAcademicYearDates();
+        }
         
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement){
         person.addPayment(payement);
         personService.updatePerson(person);
-                //paymentService.addPayment(payement);
     }
     
     /*returns the total amount this person has payed up until now for his orders*/

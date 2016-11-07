@@ -27,7 +27,7 @@ public interface PaymentRepository {
     public void deleteAllPayments();
     
     public List<Payment> getAllPayments();
-
+    
     public void closeConnection() throws DbException;
 
 }

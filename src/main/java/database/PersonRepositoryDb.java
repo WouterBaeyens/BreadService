@@ -32,6 +32,11 @@ class PersonRepositoryDb implements PersonRepository {
         manager = factory.createEntityManager();
     }
 
+    PersonRepositoryDb(EntityManagerFactory factory) {
+        this.factory = factory;
+        manager = factory.createEntityManager();
+    }
+
     @Override
     public void addPerson(Person person) {
         Person p = getPerson(person.getId());
@@ -56,7 +61,6 @@ class PersonRepositoryDb implements PersonRepository {
             person = manager.find(Person.class, id);
             return person;
         } catch (Exception e) {
-            manager.getTransaction().rollback();
             String message = person == null ? 
                     "[Err. person with id " + id + " not found]":
                     "[Err. getting person " + person + "]";
@@ -247,6 +251,27 @@ class PersonRepositoryDb implements PersonRepository {
         } catch (Exception e){
             throw new DbException(e.getMessage(), e);
         } 
+    }
+    
+    public void clearManager(){
+        manager.clear();
+    }
+    
+        public void refreshPerson(Person p){
+        try {
+            manager.getTransaction().begin();
+            manager.refresh(p);
+            manager.getTransaction().commit();
+        } catch (Exception e) {
+            if(manager.getTransaction().isActive())
+                manager.getTransaction().rollback();
+            throw new DbException("[Err. refreshing " + p + " in PersonRep.] " + e.getMessage(),e);
+        }
+    }
+
+    @Override
+    public void removeRelationsToOrder(OrderBill order) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

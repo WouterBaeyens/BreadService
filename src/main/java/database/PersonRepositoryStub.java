@@ -5,6 +5,7 @@
  */
 package database;
 
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
 import java.util.ArrayList;
@@ -96,6 +97,21 @@ public class PersonRepositoryStub implements PersonRepository{
 
     @Override
     public boolean isManaged(Person person) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void refreshPerson(Person p) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void clearManager() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void removeRelationsToOrder(OrderBill order) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -14,6 +14,8 @@ public class PersonRepositoryFactory {
      public static PersonRepository createPersonRepository(String type){
         if(type.toLowerCase().equals("stub")){
             return new PersonRepositoryStub();
+        } else if(type.toLowerCase().equals("test")){
+            return new APersonTestDb("BreadPU");
         }
         else
             return new PersonRepositoryDb("BreadPU");

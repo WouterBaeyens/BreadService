@@ -7,6 +7,7 @@ package database;
 
 import domain.OrderBill;
 import domain.OrderWeekPK;
+import domain.Person;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +99,17 @@ public class OrderRepositoryStub implements OrderRepository{
     }
 
     @Override
-    public boolean isManaged(OrderBill order) {
+    public boolean isManaged(Object order) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void clearManager() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void removeRelationsToPerson(Person person) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

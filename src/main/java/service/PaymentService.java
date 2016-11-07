@@ -5,6 +5,7 @@
  */
 package service;
 
+import database.GeneralRepositoryFactory;
 import database.PaymentRepository;
 import database.PaymentRepositoryFactory;
 import domain.Payment;
@@ -19,6 +20,7 @@ public class PaymentService {
         
         public PaymentService(String repositoryType){
             this.repository = PaymentRepositoryFactory.createPaymentRepository(repositoryType);
+            //this.repository = GeneralRepositoryFactory.createPaymentRepository(repositoryType);
         }
         
         public void addPayment(Payment payment){

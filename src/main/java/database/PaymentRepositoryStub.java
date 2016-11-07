@@ -66,6 +66,8 @@ public class PaymentRepositoryStub implements PaymentRepository{
     public void closeConnection() throws DbException {
         System.out.println("imitates a real database and acts like it's really closing a connection");
     }
+    
+
 
     @Override
     public void deleteAllPayments() {

@@ -47,9 +47,13 @@ public class OrderWeekRepositoryDbTest {
     
     @BeforeClass
     public static void setUpClass() {
-        weekRep = OrderWeekRepositoryFactory.createOrderWeekRepository("JPA");
-        orderRep = OrderRepositoryFactory.createOrderRepository("JPA");
-        personRep = PersonRepositoryFactory.createPersonRepository("JPA");
+        weekRep = OrderWeekRepositoryFactory.createOrderWeekRepository("cobi_jpa");
+        orderRep = OrderRepositoryFactory.createOrderRepository("combi_jpa");
+        personRep = PersonRepositoryFactory.createPersonRepository("combi_jpa");
+        
+        //weekRep = OrderWeekRepositoryFactory.createOrderWeekRepository("JPA");
+        //orderRep = OrderRepositoryFactory.createOrderRepository("JPA");
+        //personRep = PersonRepositoryFactory.createPersonRepository("JPA");
         orderRep.deleteAllOrders();
         personRep.deleteAllPersons();
         weekRep.deleteAllWeeks();
@@ -107,9 +111,7 @@ public class OrderWeekRepositoryDbTest {
             week.setOrder(order);
     }
     
-    /**
-     * Test of getWeek method, of class OrderWeekRepositoryDb.
-     */
+   /*
     @Test
     public void testGetWeek_int_int() {
         System.out.println("TEST: getWeek");
@@ -146,7 +148,7 @@ public class OrderWeekRepositoryDbTest {
         weekRep.updateWeek(currentWeek);
         OrderBill foundOrder = orderRep.getOrder(currentWeek.getOrderWeekPK());
         assertEquals(cheapOrder.getTotalCost(), foundOrder.getTotalCost(), 0.000001);
-    }*/
+    }
     
         @Test
     public void test_add_Order_To_Week_without_using_cascade(){
@@ -235,7 +237,7 @@ public class OrderWeekRepositoryDbTest {
         boolean t4 =  orderRep.isManaged(dbOrder);
         dbOrder.addAuthor(jan);
      
-        personRep.updatePerson(jan);*/
+        personRep.updatePerson(jan);
 //        orderRep.updateOrder(cheapOrder);
 //        weekRep.getManager().refresh(jan);
         

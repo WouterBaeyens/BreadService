@@ -16,6 +16,8 @@ public class OrderWeekRepositoryFactory {
         if(type.toLowerCase().equals("stub")){
             //return new OrderWeekRepositoryStub();
             return null;
+        } else if(type.toLowerCase().equals("test")){
+            return new AWeekTestDb("BreadPU");
         }
         else
             return new OrderWeekRepositoryDb("BreadPU");

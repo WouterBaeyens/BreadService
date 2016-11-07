@@ -6,6 +6,7 @@
 package service;
 
 import database.DbException;
+import database.GeneralRepositoryFactory;
 import database.PersonRepository;
 import database.PersonRepositoryFactory;
 import domain.OrderBill;
@@ -26,6 +27,8 @@ public class PersonService {
 
         public PersonService(String repositoryType){
             this.repository = PersonRepositoryFactory.createPersonRepository(repositoryType);
+            //this.repository = GeneralRepositoryFactory.createPersonRepository(repositoryType);
+
         }
         
             /*adds a person to keep track of / store */
@@ -68,4 +71,18 @@ public class PersonService {
     void closeConnection() {
         repository.closeConnection();
     }
+    
+    void clearManager(){
+        repository.clearManager();
+    }
+    
+    void refreshPerson(Person p){
+        repository.refreshPerson(p);
+    }
+    
+    public void removeRelationsToOrder(OrderBill o){
+        repository.removeRelationsToOrder(o);
+    }
+    
+
 }

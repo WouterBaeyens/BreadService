@@ -34,6 +34,11 @@ public class OrderRepositoryDb implements OrderRepository{
         manager = factory.createEntityManager();
     }
     
+    public OrderRepositoryDb(EntityManagerFactory managerFactory){
+        factory = managerFactory;
+        manager = factory.createEntityManager();
+    }
+    
     @Override
     //since OrderBill's only PK is a FK, it can not be correctly persisted on it's own
     public void addOrder(OrderBill order){
@@ -169,7 +174,7 @@ public class OrderRepositoryDb implements OrderRepository{
     }
 
     @Override
-    public boolean isManaged(OrderBill order){
+    public boolean isManaged(Object order){
         return manager.contains(order);
     }
     
@@ -182,5 +187,13 @@ public class OrderRepositoryDb implements OrderRepository{
                 System.out.println(o);
                 deleteOrder(o.getOrderPK());
             }
+    }
+    
+        public void removeRelationsToPerson(Person person){
+            
+        }
+    
+    public void clearManager(){
+        manager.clear();
     }
 }

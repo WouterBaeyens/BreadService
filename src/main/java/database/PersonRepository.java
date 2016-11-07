@@ -5,6 +5,7 @@
  */
 package database;
 
+import domain.OrderBill;
 import domain.Payment;
 import domain.Person;
 import java.util.List;
@@ -35,10 +36,17 @@ public interface PersonRepository {
     /*Returns all the payments for a person*/
     public List<Payment> getPaymentsForPerson(long personId);
  
+    public void removeRelationsToOrder(OrderBill order);
+
+    
     public void testFlush();
     
     public boolean isManaged(Person person);
     
     public void closeConnection() throws DbException;
+    
+    public void refreshPerson(Person p);
+    
+    public void clearManager();
         
 }

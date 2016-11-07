@@ -7,6 +7,7 @@ package domain;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.voodoodyne.jackson.jsog.JSOGGenerator;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,10 +31,11 @@ import jdk.nashorn.internal.objects.NativeArray;
  *
  * @author Wouter
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+@JsonIdentityInfo(generator=JSOGGenerator.class)
 @NamedQueries({
     @NamedQuery(name="Person.getAll", query="select p from Person p"),
-    @NamedQuery(name="Person.FetchOrders", query="select p from Person p join fetch p.orders where p.id = :id")
+    @NamedQuery(name="Person.FetchOrders", query="select p from Person p join fetch p.orders where p.id = :id"),
 }) 
 @Entity(name="Person")
 public class Person {
@@ -54,16 +56,17 @@ public class Person {
     
     
     
-    /*@ManyToMany
+    @ManyToMany
     @JoinTable(
             name="ORDER_PERSON",
             inverseJoinColumns = {
                 @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
                 @JoinColumn(name="yearNr", referencedColumnName = "yearNr")},
             joinColumns=@JoinColumn(name="PERSON_ID")          
-    )    */
+    )    
     
-    @ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
+    //@ManyToMany(mappedBy="authors", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
+    //@ManyToMany(mappedBy="authors", fetch=FetchType.LAZY)
     private Set<OrderBill> orders;
 
     @Column(name="name")
@@ -122,16 +125,15 @@ public class Person {
         }
     }
     
-    public void removeOrder(OrderBill order){
-        orders.remove(order);
-       if(order.getAuthors().contains(this)){
+    public void removeOrder(OrderBill order){ 
+       orders.remove(order);
+        if(order.getAuthors().contains(this)){
             order.removeAuthor(this);
         }
     }
     
     public void removeAllOrders(){
         Set<OrderBill> orderSet = new HashSet(this.getOrders());
-        orders.clear();
         for(OrderBill order: orderSet){
             System.out.println("removed [" + order + "] from [" + this + "]");
             order.removeAuthor(this);
@@ -189,5 +191,21 @@ public class Person {
         }
         String result = "Person" + this.getId() + ": " + this.getName() + " orders(" + orders +")" + "paym(" + payments + ")";
         return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj){
+        if(obj == null)
+            return false;
+        if(!(obj instanceof Person))
+            return false;
+        return ((Person) obj).getId() == this.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
     }
 }

@@ -8,6 +8,7 @@ package domain;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.voodoodyne.jackson.jsog.JSOGGenerator;
 import database.DbException;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -35,6 +37,8 @@ import javax.persistence.MapsId;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.PrimaryKeyJoinColumns;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
@@ -42,10 +46,12 @@ import javax.validation.constraints.NotNull;
  *
  * @author Wouter
  */
-@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+//@JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
+@JsonIdentityInfo(generator=JSOGGenerator.class)
 //@Table(name="orderBillTable")
 @Entity(name="OrderBill")
 @NamedQueries({
+    @NamedQuery(name="Order.truncate", query="delete from OrderBill"),
     @NamedQuery(name="Order.getAll", query="select o from OrderBill o"),
     @NamedQuery(name="Order.findOrders", query="select o from OrderBill o join o.orderWeek as w where (w.orderWeekPK.weekNr = :w and w.orderWeekPK.yearNr = :y)")
 }) 
@@ -56,23 +62,28 @@ public class OrderBill implements Transaction{
     private OrderWeekPK orderWeekPK;
     
     
-    /*@ManyToMany(mappedBy="orders", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
-    // @ManyToMany(mappedBy="orders", fetch=FetchType.EAGER)*/
+    //@ManyToMany(mappedBy="orders", fetch=FetchType.LAZY, cascade={CascadeType.MERGE, CascadeType.REFRESH})
+     @ManyToMany(mappedBy="orders", fetch=FetchType.EAGER)
     
-    @ManyToMany
+    /*@ManyToMany
     @JoinTable(
             name="ORDER_PERSON",
             joinColumns = {
                 @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
                 @JoinColumn(name="yearNr", referencedColumnName = "yearNr")},
             inverseJoinColumns=@JoinColumn(name="PERSON_ID")          
-    )    
+    )    */
     private Set<Person> authors;
     
-    @OneToOne
-    @JoinColumns(value = {
-        @JoinColumn(name="weekNr", referencedColumnName = "weekNr"),
-        @JoinColumn(name="yearNr", referencedColumnName = "yearNr")})
+    //no cascade persist, since that would cause errors if the week already exists
+    //@OneToOne
+    @OneToOne (mappedBy = "orderBill")
+    /*@JoinColumns(value = {
+        @JoinColumn(name="weekNrPk", referencedColumnName = "weekNr"),
+        @JoinColumn(name="yearNrPk", referencedColumnName = "yearNr")})
+    /*@PrimaryKeyJoinColumns(value = {
+        @PrimaryKeyJoinColumn(name="weekNrPk", referencedColumnName = "weekNr"),
+        @PrimaryKeyJoinColumn(name="yearNrPk", referencedColumnName = "yearNr")})*/
     @MapsId
     private OrderWeek orderWeek;
     
@@ -147,6 +158,8 @@ public class OrderBill implements Transaction{
     }
     
     public double getCostPerPerson(){
+        if(getNumberOfPersonsForOrder() == 0)
+            throw new DomainException("ERROR: asking cost per person for order with no persons." + this.toString());
         return getTotalCost() / getNumberOfPersonsForOrder();
     }
     
@@ -185,14 +198,16 @@ public class OrderBill implements Transaction{
         authors.remove(author);
         if(author.getOrders().contains(this))
             author.removeOrder(this);
+        //authors.remove(author);
     }
     
     public void removeAllAuthors(){
         Set<Person> authorSet = new HashSet(this.getAuthors());
-        authors.clear();
+        //authors.clear();
         for(Person author: authorSet){
             System.out.println("removed [" + author + "] from [" + this + "]");
-            author.removeOrder(this);
+            //author.removeOrder(this);
+            removeAuthor(author);
         }
     }
     
@@ -247,6 +262,8 @@ public class OrderBill implements Transaction{
 
     @Override
     public double getTransactionValue() {
+        if(getNumberOfPersonsForOrder() == 0)
+            throw new DomainException("ERROR: asking transaction per person for order with no persons." + this.toString());
         return -getTotalCost() / getNumberOfPersonsForOrder();
     }
     
@@ -257,6 +274,22 @@ public class OrderBill implements Transaction{
         }
         String result = "Order" + this.getId() + ": " + this.getFormattedDate() + " " + this.getTotalCost() + "$ payed by (" + authors + ")";
         return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj){
+        if(obj == null)
+            return false;
+        if(!(obj instanceof OrderBill))
+            return false;
+        return ((OrderBill) obj).getOrderPK().equals(this.getOrderPK());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 53 * hash + Objects.hashCode(this.orderWeekPK);
+        return hash;
     }
     
     

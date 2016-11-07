@@ -58,8 +58,15 @@ public interface Service {
     /*returns all the orders that are stored*/
     public List<OrderBill> getAllOrders();
     
+        public void addWeek(OrderWeek week);
+    
         public OrderWeek getWeek(int week, int year);
     
+        public OrderWeek getCurrentWeek();
+        
+    public List<OrderWeek> getAllAcademicYearDates();
+
+        
     /*adds a (partial) payment made by a person for his orders*/
     public void addPersonPayment(Person person, Payment payement);
     

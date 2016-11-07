@@ -31,6 +31,12 @@ class PaymentRepositoryDb implements PaymentRepository {
         factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
         manager = factory.createEntityManager();
     }
+
+    PaymentRepositoryDb(EntityManagerFactory factory) {
+        this.factory = factory;
+        manager = factory.createEntityManager();
+    }
+
     @Override
     public void addPayment(Payment payment) {
         System.out.println("WARNING: payment added manually, this can cause a persitence error if linked to a person when it is managed through cascade!");
@@ -105,7 +111,6 @@ class PaymentRepositoryDb implements PaymentRepository {
         }
         
     }
-    
     
 
     @Override

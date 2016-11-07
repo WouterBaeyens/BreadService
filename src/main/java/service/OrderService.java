@@ -6,6 +6,7 @@
 package service;
 
 import database.DbException;
+import database.GeneralRepositoryFactory;
 import database.OrderRepository;
 import database.OrderRepositoryFactory;
 import domain.OrderBill;
@@ -26,6 +27,7 @@ public class OrderService {
         
         public OrderService(String repostioryType){
             this.repository = OrderRepositoryFactory.createOrderRepository(repostioryType);
+            //this.repository = GeneralRepositoryFactory.createOrderRepository(repostioryType);
         }
         
     public void addOrder(OrderBill order){
@@ -78,5 +80,12 @@ public class OrderService {
     public void closeConnection() {
         repository.closeConnection();
     }
+    
+    public void removeRelationsToPerson(Person p){
+        repository.removeRelationsToPerson(p);
+    }
         
+    public void clearManager(){
+        repository.clearManager();
+    }
 }

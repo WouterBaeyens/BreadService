@@ -39,12 +39,12 @@ public class ServletFacadeTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
     
-    private static BreadServiceFacade facade;
+    private static Service facade;
     private Person genericPerson;
     private Person genericPerson2;
     private Person genericPerson3;
-    private Set<Person> persons;
-    private Set<Long> personIds;
+    private List<Person> persons;
+    private List<Long> personIds;
     private Payment validPayement_with_current_date;
     private Payment validPayement_with_past_date;
     private OrderBill validOrder_with_current_date;
@@ -56,7 +56,8 @@ public class ServletFacadeTest {
     
     @BeforeClass
     public static void setUpClass() {
-        facade = new BreadServiceFacade("JPA");
+        facade = new BreadServiceHyperFacade("test");
+        //facade = new BreadServiceFacade("JPA");
         System.out.println("Deleting ALL");
         facade.deleteAll();
 
@@ -72,7 +73,7 @@ public class ServletFacadeTest {
         genericPerson = new Person("Jan");
         genericPerson2 = new Person("Piet");
         genericPerson3 = new Person("Joris");
-        persons = new HashSet<>();
+        persons = new ArrayList<>();
         persons.add(genericPerson2);
         persons.add(genericPerson3);
         validPayement_with_current_date = new Payment(3, LocalDate.now());
@@ -99,10 +100,12 @@ public class ServletFacadeTest {
     @Test
     public void addOrder_should_link_the_given_order_to_all_the_given_persons() {        
         System.out.println("Test: addOrder_should_link_persons");
+        Set<Person> personSet = new HashSet<>();
         for(Person person: persons){
             facade.addPerson(person);
+            personSet.add(person);
         }        
-        facade.addOrder(validOrder_with_current_date, persons);
+        facade.addOrder(validOrder_with_current_date, personSet);
         System.out.println("Order added");
         facade.getAllOrders();
         //facade.getAllPersons();
@@ -116,13 +119,15 @@ public class ServletFacadeTest {
         @Test
     public void getOrder_should_return_the_order_with_the_given_id(){
             System.out.println("getOrder_gets_order");
-        for(Person person: persons){
+        Set<Person> personSet = new HashSet<>();
+            for(Person person: persons){
             facade.addPerson(person);
+            personSet.add(person);
         }
         validOrder_with_current_date.setTotalCost(9001);
         OrderWeekPK pk = validOrder_with_current_date.getOrderPK();
         OrderWeek week = facade.getWeek(pk.getWeekNr(), pk.getYearNr());
-        facade.addOrder(validOrder_with_current_date, persons);
+        facade.addOrder(validOrder_with_current_date, personSet);
         
             //assertEquals(validOrder_with_current_date, facade.getOrder(pk.getWeekNr(), pk.getYearNr()));
     }
@@ -182,18 +187,20 @@ public class ServletFacadeTest {
         assertEquals(expectedExpenses, actualExpenses, 0.000001);
     }
     
-    @Test
+    /*@Test
     public void updateOrder_should_update_the_date_and_cost_for_the_order_with_the_given_id(){
+        Set<Person> personSet = new HashSet<>();
         for(Person person: persons){
             facade.addPerson(person);
+            personSet.add(person);
         }
-        facade.addOrder(validOrder_with_current_date, persons);
+        facade.addOrder(validOrder_with_current_date, personSet);
         OrderWeekPK pk = validOrder_with_current_date.getOrderPK();
         double newTotalCost = 15.3;
         facade.updateOrder(pk.getWeekNr(), pk.getYearNr(), newTotalCost);
         validOrder_with_current_date = facade.getOrder(pk.getWeekNr(), pk.getYearNr());
         assertEquals(newTotalCost, validOrder_with_current_date.getTotalCost(), 0.000001);
-    }
+    }*/
     
     @Test
     public void payment_constructor_with_negative_given_amount_should_throw_exception(){
@@ -206,27 +213,91 @@ public class ServletFacadeTest {
     //      stay intact until jpa is further configured.
     @Test
     public void deleteOrder_should_remove_the_order_and_all_its_relations(){
+        Set<Person> personSet = new HashSet();
         for(Person person: persons){
             facade.addPerson(person);
+            personSet.add(person);
         }
-        facade.addOrder(validOrder_with_current_date, persons);
+        facade.addOrder(validOrder_with_current_date, personSet);
         OrderWeekPK pk = validOrder_with_current_date.getOrderPK();
         facade.deleteOrder(pk.getWeekNr(), pk.getYearNr());
         assertFalse(facade.getAllOrders().contains(validOrder_with_current_date));
-        //todo: check relations
+        for(Person p: facade.getAllPersons()){
+            assertFalse("Person has orders: " + p + "but order has no persons: " + validOrder_with_current_date, p.getOrders().contains(validOrder_with_current_date));
+        }
 }
     
-        @Test
-    public void getSortedTransactoinsForPerson_returns_all_payments_and_orders_for_a_given_person(){
-        persons.add(genericPerson);
+  /*  @Test
+    public void add_order_to_week_should_add_order_and_all_its_relations_to_the_week(){
+        Set<Person> personSet = new HashSet();      
         for(Person person: persons){
             facade.addPerson(person);
+            personSet.add(person);
+        }
+        OrderWeek w = validOrder_with_current_date.getOrderWeek();
+        System.out.println("will add week: " + w.getWeekNr() + " " + w.getYearNr());
+        facade.addWeek(new OrderWeek(w.getWeekNr(), w.getYearNr()));
+        //boolean testing = facade.isWeekInDb(w.getWeekNr(), w.getWeekNr());
+        //assertTrue("unable to add week " +w.getWeekNr() + " " + w.getYearNr(), facade.isWeekInDb(w.getWeekNr(), w.getWeekNr()));
+        facade.addOrder(validOrder_with_current_date, personSet);
+        OrderWeekPK pk = validOrder_with_current_date.getOrderPK();
+        
+        OrderBill o = facade.getOrder(w.getWeekNr(), w.getYearNr());
+        //assertTrue("week " +w.getWeekNr() + " " + w.getYearNr() +  " is not in Db after adding the order", facade.isWeekInDb(w.getWeekNr(), w.getWeekNr()));
+        OrderWeek week = facade.getWeek(w.getWeekNr(), w.getYearNr());
+
+        for(Person p: o.getAuthors()){
+            assertTrue(p.getOrders().contains(o));
+            OrderBill o2 = week.getOrderBill();
+            assertTrue(o2.getAuthors().contains(p));
+        }
+        
+        Set<Person> personsWithOrder = facade.getPersonsWithOrder(validOrder_with_current_date.getWeekNr(), validOrder_with_current_date.getYearNr());
+        for(Person person : persons){
+            assertTrue("person [" + person +  "] has no link to order [" + o + "]", person.getOrders().contains(o));
+
+            assertTrue(personsWithOrder.stream().anyMatch(p->p.getId() == person.getId()));
+    }
+    }
+    /*
+        @Test
+    public void add_order_without_week_should_add_order_and_all_its_relations_to_a_new_week(){
+                for(Person person: persons){
+            facade.addPerson(person);
+        }
+        OrderWeek w = validOrder_with_current_date.getOrderWeek();
+        //facade.addWeek(new OrderWeek(w.getWeekNr(), w.getYearNr()));
+        facade.addOrder(validOrder_with_current_date, persons);
+        OrderWeekPK pk = validOrder_with_current_date.getOrderPK();
+        
+        OrderBill o = facade.getOrder(w.getWeekNr(), w.getYearNr());
+        for(Person p: o.getAuthors()){
+            assertTrue(p.getOrders().contains(o));
+        }
+        
+        Set<Person> personsWithOrder = facade.getPersonsWithOrder(validOrder_with_current_date.getWeekNr(), validOrder_with_current_date.getYearNr());
+        for(Person person : persons){
+            assertTrue("person [" + person +  "] has no link to order [" + o + "]", person.getOrders().contains(o));
+
+            assertTrue(personsWithOrder.stream().anyMatch(p->p.getId() == person.getId()));
+    }
+    }*/
+    
+    
+    
+      /*  @Test
+    public void getSortedTransactoinsForPerson_returns_all_payments_and_orders_for_a_given_person(){
+        persons.add(genericPerson);
+        Set<Person> personSet = new HashSet();
+        for(Person person: persons){
+            facade.addPerson(person);
+            personSet.add(person);
         }
         facade.addPersonPayment(genericPerson, validPayement_with_current_date);
         facade.addPersonPayment(genericPerson, validPayement_with_past_date);
         
-        facade.addOrder(validOrder_with_current_date, persons);
-        facade.addOrder(validOrder_with_past_date, persons);
+        facade.addOrder(validOrder_with_current_date, personSet);
+        facade.addOrder(validOrder_with_past_date, personSet);
         
         List<Transaction> transactions = facade.getSortedTransactionsForPerson(genericPerson.getId());
         //since added orders are not managed by orderRep, they can't be used
@@ -236,7 +307,7 @@ public class ServletFacadeTest {
         expectedTransactions.add(validPayement_with_past_date);
             //assertTrue(transactions.containsAll(expectedTransactions));
         assertEquals(4, transactions.size());
-    }
+    }*/
    
     
     

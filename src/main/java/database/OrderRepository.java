@@ -7,6 +7,7 @@ package database;
 
 import domain.OrderBill;
 import domain.OrderWeekPK;
+import domain.Person;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -38,8 +39,11 @@ public interface OrderRepository {
     /*Returns a list with all the existing orders.*/
     List<OrderBill> getAllOrders();
     
+        public void removeRelationsToPerson(Person person);
+    
     public void closeConnection() throws DbException;
     
-    public boolean isManaged(OrderBill order);
+    public boolean isManaged(Object order);
     
+    public void clearManager();
 }

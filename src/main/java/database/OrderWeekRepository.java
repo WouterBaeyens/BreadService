@@ -40,7 +40,11 @@ public interface OrderWeekRepository {
     //Mainly for testing purposes
     public boolean isManaged(Object o);
     
+    public boolean isWeekInDb(OrderWeekPK pk);
+    
     public void refreshOrderWeek(OrderWeek week);
+    
+    public void clearManager();
     
     //TESTING ONLY
     public EntityManager getManager();

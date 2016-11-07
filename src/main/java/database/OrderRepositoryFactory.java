@@ -14,6 +14,8 @@ public class OrderRepositoryFactory {
         public static OrderRepository createOrderRepository(String type){
         if(type.toLowerCase().equals("stub")){
             return new OrderRepositoryStub();
+        } else if(type.toLowerCase().equals("test")){
+            return new AnOrderTestDb("BreadPU");
         }
         else
             return new OrderRepositoryDb("BreadPU");

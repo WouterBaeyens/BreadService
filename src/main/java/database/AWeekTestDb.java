@@ -5,56 +5,53 @@
  */
 package database;
 
+import domain.OrderBill;
 import domain.OrderWeek;
 import domain.OrderWeekPK;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 
 /**
  *
  * @author Wouter
  */
-public class OrderWeekRepositoryDb implements OrderWeekRepository{
-    
+public class AWeekTestDb implements OrderWeekRepository {
+
     private EntityManagerFactory factory;
     private EntityManager manager;
-    
-    public OrderWeekRepositoryDb(String namePersistenceUnit){
-        factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
-        manager = factory.createEntityManager();
-    }
 
-    OrderWeekRepositoryDb(EntityManagerFactory factory) {
-        this.factory = factory;
+    public AWeekTestDb(String namePersistenceUnit) {
+        factory = Persistence.createEntityManagerFactory(namePersistenceUnit);
         manager = factory.createEntityManager();
     }
 
     @Override
     public void addWeek(OrderWeek week) {
-        /*OrderWeek o = getWeek(week.getOrderWeekPK());
-        //boolean checkup = isManaged(o);
-        if(o != null)
-            throw new DbException("[Err. already persisted: old " + o + " | new " + week + "] ");
-        */try{
+        OrderWeek o = getWeek(week.getOrderWeekPK());
+            if(o != null)
+            throw new DbException("[Err. adding week: already persisted: old " + o + " | new " + week + "] ");
+       
+        try {
             manager.getTransaction().begin();
             manager.persist(week);
             manager.flush();
             manager.getTransaction().commit();
-        } catch (Exception e){
+        } catch (Exception e) {
             manager.getTransaction().rollback();
             throw new DbException("Err. adding week: " + week + " - " + e.getMessage(), e);
-        }   
+        }
     }
-    
-    public OrderWeek getWeek(OrderWeekPK orderWeekPK){
+
+    @Override
+    public OrderWeek getWeek(OrderWeekPK orderWeekPK) {
         OrderWeek orderWeek = null;   
         try {
             manager.getTransaction().begin();
             orderWeek = manager.find(OrderWeek.class, orderWeekPK);
-            //if(orderWeek == null)
-            //    manager.detach(orderWeek);
             manager.getTransaction().commit();
             return orderWeek;
         } catch (Exception e) {
@@ -64,31 +61,26 @@ public class OrderWeekRepositoryDb implements OrderWeekRepository{
                     "[Err. week with id " + orderWeekPK + " not found]":
                     "[Err. getting week " + orderWeek + "]";
             throw new DbException(message  + e.getMessage(),e);
-        } 
-    }
-    
-    public boolean isWeekInDb(OrderWeekPK orderWeekPK){
-        boolean foundIt = manager.find(OrderWeek.class, orderWeekPK) != null;
-        return foundIt;
-        
-    }
-    
+        }     }
+
     @Override
-    public List<OrderWeek> getAllWeeks(){
+    public List<OrderWeek> getAllWeeks() {
         try{
         manager.getTransaction().begin();
         List<OrderWeek> weeks = manager.createNamedQuery("OrderWeek.getAll", OrderWeek.class).getResultList();
         manager.getTransaction().commit();
         return weeks;
+         } catch (NoResultException e){
+            return new ArrayList<>();
         } catch (Exception e){
             if(manager.getTransaction().isActive())
                 manager.getTransaction().rollback();
             throw new DbException("[Err. retrieving all weeks] " + e.getMessage(), e);
-        }
+        } 
     }
-    
+
     @Override
-    public void updateWeek(OrderWeek orderWeek){
+    public void updateWeek(OrderWeek orderWeek) {
         try{
             manager.getTransaction().begin();
             manager.merge(orderWeek);
@@ -97,13 +89,13 @@ public class OrderWeekRepositoryDb implements OrderWeekRepository{
         } catch (Exception e){
             manager.getTransaction().rollback();
             throw new DbException("[Err. updating " + orderWeek + "] " + e.getMessage(), e);
-        }
+        }    
     }
 
     @Override
     public void deleteWeek(OrderWeekPK orderWeekPK) {
         OrderWeek orderWeek = getWeek(orderWeekPK);
-        //cascade should handel the leftovers
+        //cascade should handle the leftovers
          try{
             manager.getTransaction().begin();
             manager.remove(orderWeek);
@@ -115,38 +107,33 @@ public class OrderWeekRepositoryDb implements OrderWeekRepository{
         }
     }
     
-    
-    //when it has a link to an order
-    //and the order has a link to a person
-    //than this method will cause errors because of cascade delete.
-    public void deleteAllWeeks(){
-        manager.clear();
+    @Override
+    public void deleteAllWeeks() {
         List<OrderWeek> weeks = getAllWeeks();
         for(OrderWeek week: weeks){
             deleteWeek(week.getOrderWeekPK());
         }
     }
-    
-    public void closeConnection(){
+
+    @Override
+    public void closeConnection() {
         manager.close();
         factory.close();
     }
-    
-    //Note this is for testing purposes only
-    public EntityManager getManager(){
-        return manager;
-    }
-    
+
     @Override
-    public boolean isManaged(Object o){
+    public boolean isManaged(Object o) {
         return manager.contains(o);
     }
-    
-    public void clearManager(){
-        manager.clear();
+
+    @Override
+    public boolean isWeekInDb(OrderWeekPK pk) {
+        boolean foundIt = manager.find(OrderWeek.class, pk) != null;
+        return foundIt;    
     }
-    
-    public void refreshOrderWeek(OrderWeek week){
+
+    @Override
+    public void refreshOrderWeek(OrderWeek week) {
                  try{
             manager.getTransaction().begin();
             manager.refresh(week);
@@ -155,6 +142,37 @@ public class OrderWeekRepositoryDb implements OrderWeekRepository{
         } catch (Exception e){
             manager.getTransaction().rollback();
             throw new DbException("error refreshing " + week + "\n" + e.getMessage(), e);
-        }
+        }    }
+
+    @Override
+    public void clearManager() {
+        manager.getTransaction().begin();
+        manager.flush();
+        manager.getTransaction().commit();
+        manager.clear();
+        
     }
+
+    /*    @Override
+    public EntityManager getManager() {
+               try{
+            manager.getTransaction().begin();
+            //manager.refresh(week);
+            manager.flush();
+            manager.getTransaction().commit();
+        } catch (Exception e){
+    }
+               return null;
+    }
+    */
+    
+    public void removeRelationsToPerson(long personId){
+        
+    }
+    
+    @Override
+    public EntityManager getManager() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }
